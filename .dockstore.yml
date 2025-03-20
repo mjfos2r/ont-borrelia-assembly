@@ -1,8 +1,8 @@
 version: 1.2
 workflows:
-  name: ONT_PreprocessingAndRunQC
+  - name: ONT_PreprocessingAndRunQC
     subclass: WDL
     primaryDescriptorPath:/pipelines/ONT_PreprocessingAndRunQC.wdl
-  name: ONT_ReadPrepAndQC
+  - name: ONT_ReadPrepAndQC
     subclass: WDL
     primaryDescriptorPath:/pipelines/ONT_ReadPrepAndQC.wdl
