@@ -1,5 +1,5 @@
 version 1.0
-import "../structs/Structs.wdl"
+
 import "AlignAndPlotCoverage.wdl" as ALN
 
 workflow MultiRunQC {

@@ -1,6 +1,4 @@
 version 1.0
-# github.com/mjfos2r
-# yee haw
 
 import "../../structs/Structs.wdl"
 
@@ -13,13 +11,13 @@ workflow Dorado {
         reads: "merged reads directly from the sequencer"
         draft_asm: "draft assembly to polish"
         prefix: "prefix to output files"
-        RuntimeAttr? = runtime_attr_override
     }
 
     input {
         File reads
         File draft_asm
         String sample_id
+        RuntimeAttr? runtime_attr_override
     }
 
     call Align {
@@ -31,8 +29,7 @@ workflow Dorado {
 
     call Polish {
         input:
-            aligned_reads = Align.alignment,
-            aligned_reads_index = Align.index,
+            alignment = Align.bam,
             draft_asm = draft_asm,
             sample_id = sample_id
     }
@@ -50,9 +47,9 @@ task Align {
         description: "Align reads to a draft assembly using Dorado Align. This is required to use Dorado for polishing."
     }
     parameter_meta {
-        basecalled_reads:   "basecalled reads to be used with polishing"
-        draft_assembly:     "draft assembly to be polished"
-        sample_id:          "sample_id to use for output file naming"
+        reads:         "basecalled reads to be used with polishing"
+        draft_asm:     "draft assembly to be polished"
+        sample_id:     "sample_id to use for output file naming"
     }
 
     input {
@@ -62,7 +59,7 @@ task Align {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 4 * ceil(size([basecalled_reads, draft_assembly], "GB"))
+    Int disk_size = 4 * ceil(size([reads, draft_asm], "GB"))
 
     command <<<
         set -euxo pipefail
@@ -109,24 +106,24 @@ task Polish {
     parameter_meta {
         alignment:        "Aligned reads output by the align task. CANNOT BE ALIGNED WITH ANY OTHER TOOL"
         index:            "Index for the aligned reads bam file."
-        draft_assembly:   "Draft assembly to polish"
+        draft_asm:        "Draft assembly to polish"
         sample_id:        "Sample_id to use in naming output file"
     }
 
     input {
         File alignment
         File index
-        File draft_assembly
+        File draft_asm
         String sample_id
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 4 * ceil(size([basecalled_reads, draft_assembly], "GB"))
+    Int disk_size = 4 * ceil(size([draft_asm], "GB"))
 
     command <<<
         set -euxo pipefail
         NPROC=$(cat /proc/cpuinfo | awk '/^processor/{print }' | wc -l)
-        dorado polish "~{aligned_reads}" "~{draft_asm}" \
+        dorado polish "~{alignment}" "~{draft_asm}" \
             --device cuda:0 \
             --threads "${NPROC}" \
             --bacteria > "~{sample_id}_polished.fasta"
@@ -134,7 +131,7 @@ task Polish {
     >>>
 
     output {
-        File polished = "~{prefix}.fasta"
+        File polished = "~{sample_id}_polished.fasta"
     }
 
     ###################

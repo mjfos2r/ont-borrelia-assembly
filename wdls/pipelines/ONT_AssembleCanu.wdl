@@ -1,13 +1,14 @@
 version 1.0
 
-import "../../tasks/assemble/Canu.wdl" as CANU
-import "../../tasks/assemble/Dorado.wdl" as POLISH
-import "../../tasks/annotation/PlasmidCaller.wdl" as PC
-import "../../tasks/annotation/Bakta.wdl" as BKT
-import "../../tasks/align/minimap2.wdl" as MM2
-# import "../../tasks/annotation/LipoPredict.wdl" as LP
-# import "../../tasks/annotation/MLST.wdl" as MLST
-#import "../../tasks/annotation/ospC.wdl" as OSPC
+import "../tasks/assemble/Canu.wdl" as CANU
+import "../tasks/assemble/CanuTrycycler.wdl" as CANUTry
+import "../tasks/assemble/Dorado.wdl" as POLISH
+import "../tasks/annotation/PlasmidCaller.wdl" as PC
+import "../tasks/annotation/Bakta.wdl" as BKT
+import "../tasks/align/minimap2.wdl" as MM2
+# import "../tasks/annotation/LipoPredict.wdl" as LP
+# import "../tasks/annotation/MLST.wdl" as MLST
+#import "../tasks/annotation/ospC.wdl" as OSPC
 
 workflow AssembleCanu {
 
@@ -37,14 +38,14 @@ workflow AssembleCanu {
 
     call CANU.Canu {
         input:
-            reads = fixed_reads
-            genome_size = genome_size
-            correct_error_rate = correct_error_rate
-            trim_error_rate = trim_error_rate
-            assemble_error_rate = assemble_error_rate
-            prefix = sample_id
+            reads = fixed_reads,
+            genome_size = genome_size,
+            correct_error_rate = correct_error_rate,
+            trim_error_rate = trim_error_rate,
+            assemble_error_rate = assemble_error_rate,
+            prefix = sample_id,
     }
-    call CANU.CanuTrimContigs {
+    call CANUTry.CanuTrimContigs {
         input:
             contigs = Canu.contigs,
             prefix = sample_id
@@ -68,8 +69,8 @@ workflow AssembleCanu {
     call BKT.bakta {
         input:
             prefix = sample_id,
-            contigs = Dorado.polished
-            rename_table = CallPlasmids.rename_table
+            contigs = Dorado.polished,
+            rename_table = CallPlasmids.rename_table,
             bakta_db = bakta_db
     }
     call QUAST.Quast {
@@ -79,7 +80,7 @@ workflow AssembleCanu {
             reference_fa = reference_fa,
             reference_gff = reference_gff,
             fixed_reads = fixed_reads,
-            Reads2AsmBam = Minimap2.bam
+            Reads2AsmBam = Minimap2.bam,
             Reads2RefBam = Reads2RefBam
     }
     output {

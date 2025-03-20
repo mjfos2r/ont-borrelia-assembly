@@ -1,13 +1,13 @@
 version 1.0
 
-import "../../tasks/assemble/Canu.wdl" as CANU
-import "../../tasks/assemble/Dorado.wdl" as POLISH
-import "../../tasks/annotation/PlasmidCaller.wdl" as PC
-import "../../tasks/annotation/Bakta.wdl" as BKT
-import "../../tasks/align/minimap2.wdl" as MM2
-# import "../../tasks/annotation/LipoPredict.wdl" as LP
-# import "../../tasks/annotation/MLST.wdl" as MLST
-#import "../../tasks/annotation/ospC.wdl" as OSPC
+import "../tasks/assemble/Canu.wdl" as CANU
+import "../tasks/assemble/Dorado.wdl" as POLISH
+import "../tasks/annotation/PlasmidCaller.wdl" as PC
+import "../tasks/annotation/Bakta.wdl" as BKT
+import "../tasks/align/minimap2.wdl" as MM2
+# import "../tasks/annotation/LipoPredict.wdl" as LP
+# import "../tasks/annotation/MLST.wdl" as MLST
+#import "../tasks/annotation/ospC.wdl" as OSPC
 
 workflow AssembleCanu {
 

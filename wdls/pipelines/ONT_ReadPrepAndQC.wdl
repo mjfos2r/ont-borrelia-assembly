@@ -1,6 +1,9 @@
 version 1.0
-import "../../structs/Structs.wdl"
-import "../../workflows/QC.wdl" as QC
+
+import "../workflows/QC_single.wdl" as QC
+import "../tasks/utilities/BamUtils.wdl" as BAM
+import "../tasks/utilities/Chopper.wdl" as CHP
+import "../tasks/telomeres/ResolveTelomeres.wdl" as TELO
 
 workflow ONT_ReadPrepAndQC {
     meta {
@@ -19,30 +22,25 @@ workflow ONT_ReadPrepAndQC {
     }
 
     input {
-        String experiment_id
-        String flow_cell_product_code
-        String kit
-        String barcode
         String sample_id
-        Array[Files] raw_bams
+        Array[File] raw_bams
         File reference_fa
         File contam_fa
     }
-    call BAMutils.MergeBams { input: input_bams = raw_bams, name = sample_id }
-    call BAMutils.Bam2Fastq { input: input_bam = MergeBams.merged_bam }
+    call BAM.MergeBams { input: input_bams = raw_bams, name = sample_id }
+    call BAM.Bam2Fastq { input: input_bam = MergeBams.merged_bam }
     # Get to the choppah and clean our reads!
     call CHP.Chopper { input: input_reads = Bam2Fastq.fastq, contam_fa = contam_fa }
     # process telomeric reads
-    call Telo.ResolveTelomeres { input: reads = Chopper.clean_fq, sample_id = sample_id }
+    call TELO.ResolveTelomeres { input: reads = Chopper.clean_fq, sample_id = sample_id }
 
     # now generate our QC for these reads.
     call QC.SingleReadsQC {
         input:
             sample_id = sample_id,
-            reference_fa = reference,
-            clean_fastq = Chopper.clean_fastq
-            fixed_fastq = ResolveTelomeres.fixed_fastq
-            aln_prefix = "vB31"
+            reference_fa = reference_fa,
+            clean_fastq = Chopper.clean_fq,
+            fixed_fastq = ResolveTelomeres.fixed_reads,
     }
 
     output {

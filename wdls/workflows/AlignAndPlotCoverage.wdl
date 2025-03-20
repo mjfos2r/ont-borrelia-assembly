@@ -34,7 +34,7 @@ workflow AlignAndPlotCoverage {
     # plot coverage and output an array of plot files
     call PLT.PlotBamCoverage {
         input:
-            input_bam = Minimap2_rawTelos.aligned_bam
+            input_bam = Minimap2.aligned_bam
     }
 
     output {
