@@ -30,16 +30,16 @@ task NanoPlotFromSummary {
 
         # generate barcode specific reports and plots
         NanoPlot -t "${NPROCS}" \
-                --outdir nanoplots/barcoded
-                 -c royalblue \
-                 --N50 \
-                 --tsv_stats \
-                 --barcoded \
-                 --summary "~{sep=' ' summary_files}"
+                --outdir nanoplots/barcoded \
+                -c royalblue \
+                --N50 \
+                --tsv_stats \
+                --barcoded \
+                --summary "~{sep=' ' summary_files}"
 
         # generate overall reports and plots
         NanoPlot -t "${NPROCS}" \
-                --outdir nanoplots/overall
+                --outdir nanoplots/overall \
                  -c royalblue \
                  --N50 \
                  --tsv_stats \

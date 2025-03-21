@@ -1,12 +1,13 @@
 version 1.0
 
 import "../tasks/QC/NanoPlot.wdl" as NP
-import "../tasks/utilities/GeneralUtilities.wdl" as GenUtils
+import "../tasks/utilities/GeneralUtils.wdl" as GenUtils
 import "../workflows/Preprocessing.wdl" as Preproc
 
 workflow ONT_PreprocessingAndRunQC {
     meta {
         description: "Take in the tarball of the bam_pass file for our run, decompress it, merge all of the bams for each barcode, rename the barcode, then trim, filter, and generate QC report for all of our samples. Also generate a NanoPlot from the ONT summary.txt file"
+        author: "Michael J. Foster"
     }
 
     parameter_meta {
@@ -24,6 +25,11 @@ workflow ONT_PreprocessingAndRunQC {
         Array[File] summary_checksums
         File samplesheet
     }
+    # Get the filenames for our summary files. create an array to use in generating the final validation array..
+    scatter (file in summary_files){
+        String summary_filename = basename(file)
+    }
+    Array[String] summary_filenames = summary_filename
 
     # Run Preprocessing workflow
     call Preproc.Preprocessing {
@@ -33,6 +39,7 @@ workflow ONT_PreprocessingAndRunQC {
             samplesheet = samplesheet,
     }
 
+    # now we validate our summary file(s)
     scatter (idx in range(length(summary_files))) {
         call GenUtils.ValidateMd5sum as summary_validation {
             input:
@@ -40,25 +47,37 @@ workflow ONT_PreprocessingAndRunQC {
                 checksum = summary_checksums[idx]
         }
     }
-    Array[Boolean] summary_valid = summary_validation.is_valid
-    Array[Boolean] false_values = select_all(boolean_array, false)
-    if (length(false_values) = 0 ) {
-        call NP.NanoPlotFromSummary { input: summary_file = summary_files }
+    # gather our validation statuses
+    Array[Boolean] summary_validity = summary_validation.is_valid
+
+    # scatter across em and collect our false values but only if it's not valid, otherwise return no variable.
+    scatter (valid in summary_validity) {
+        if (!valid) {
+            Boolean not_valid = true
+        }
     }
-    Array[Pair[String, Boolean]] summary_integrity = zip(summary_files, summary_valid)
+    # if there's any, set this to true.
+    Boolean any_invalid = length(not_valid) > 0
+    #if ( !(false in summary_validity) ) { # why can't I do this simple check? ughhhh
+    if (!any_invalid) {
+        call NP.NanoPlotFromSummary { input: summary_files = summary_files }
+    }
+
+    Array[Pair[String, Boolean]] summary_integrity = zip(summary_filenames, summary_validity)
 
     output {
-        # Run-level metadata from Preprocessing
-        ## Metadata parsed from samplesheet
+        # Metadata parsed from samplesheet
         Array[String] position_id = Preprocessing.position_id
         Array[String] experiment_id = Preprocessing.experiment_id
         Array[String] flow_cell_product_code = Preprocessing.flow_cell_product_code
         Array[String] kit = Preprocessing.kit
         Array[String] barcode = Preprocessing.barcode
         Array[String] sample_id = Preprocessing.sample_id
+
         # Validation output
         Boolean md5_validation_passed = Preprocessing.is_valid
         Array[Pair[String, Boolean]] summary_file_integrity = summary_integrity
+
         # decompressed outputs from DecompressRunTarball if md5 is valid.
         Int? directory_count = Preprocessing.directory_count
         Array[Int]? bam_counts = Preprocessing.bam_counts

@@ -217,7 +217,7 @@ task DecompressRunTarball {
 
         mkdir -p extracted
 
-        tar --use-compress-program=pigz -xf ~{tarball} -C extracted
+        tar --use-compress-program=pigz -xf ~{tarball} -C extracted --strip-components=1
         # Get a list of our directories, pull the barcode ID, and make a list of files for each
         find extracted -mindepth 1 -maxdepth 1 -type d | sort > directory_list.txt
         cut -d'/' -f2 directory_list.txt > barcodes.txt
