@@ -1,4 +1,7 @@
 # ont-borrelia-assembly
+
 Author: Michael J. Foster
-Lemieux Lab @ MGH/BroadInstitute
-Repository housing necessary workflows and pipelines required for assembly of Borrelia burgdorferi genomes from  ONT generated data.
+
+Pipeline written for Borrelia sequencing done in the Lemieux Lab @ MGH/BroadInstitute
+
+This repository houses necessary tasks/workflows/pipelines required for assembly of Borrelia burgdorferi genomes from  ONT generated data on Terra.
