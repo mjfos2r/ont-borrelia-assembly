@@ -153,8 +153,10 @@ task ValidateMd5sum {
     command <<<
     set -euxo pipefail # crash out
 
-    EXPECTED_MD5=$(awk '{print $1}' ~{checksum})
-    ACTUAL_MD5=$(md5sum ~{file} | awk '{print $1}')
+    EXPECTED_MD5=$(awk '{print $1}' "~{checksum}")
+    # This is required as the awk command can hang.
+    md5sum "~{file}" > actual_sum.txt
+    ACTUAL_MD5=$(awk '{print $1}' actual_sum.txt)
     if [ "$EXPECTED_MD5" != "$ACTUAL_MD5" ]; then
         echo "ERROR: CHECKSUM VALIDATION FAILED FOR ~{file}"
         echo "ERROR: Expected: $EXPECTED_MD5"

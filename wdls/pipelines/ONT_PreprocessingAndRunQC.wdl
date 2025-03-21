@@ -39,13 +39,21 @@ workflow ONT_PreprocessingAndRunQC {
             samplesheet = samplesheet,
     }
 
-    # now we validate our summary file(s)
-    scatter (idx in range(length(summary_files))) {
-        call GenUtils.ValidateMd5sum as summary_validation {
-            input:
-                file = summary_files[idx],
-                checksum = summary_checksums[idx]
+    if (length(summary_files) > 1) {
+        # now we validate our summary file(s)
+        scatter (idx in range(length(summary_files))) {
+            call GenUtils.ValidateMd5sum as summary_validation {
+                input:
+                    file = summary_files[idx],
+                    checksum = summary_checksums[idx]
+            }
         }
+    }
+    if (length(summary_files) = 1){
+        call GenUtils.ValidateMd5sum as summary_validation {
+                input:
+                    file = summary_files[idx],
+                    checksum = summary_checksums[idx]
     }
     # gather our validation statuses
     Array[Boolean] summary_validity = summary_validation.is_valid
