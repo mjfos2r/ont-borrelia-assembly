@@ -19,7 +19,7 @@ workflow AssembleCanu {
         fixed_reads: "telomere fixed reads in fastq."
         polished_contigs: "polished contigs output by dorado"
         bakta_db "tar.gz containing the full bakta database"
-        fixed_telo_bam: "Bam file for the aligned reads against the reference geome"
+        fixed_telo_bam: "Bam file for the aligned reads against the reference genoome (generated in ReadPrepAndQC workflow)"
         reference_fa: "Fasta for our reference genome to pass to Quast"
         reference_gff "GFF3 for our reference genome to pass to Quast"
     }
