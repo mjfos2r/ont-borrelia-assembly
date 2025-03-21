@@ -163,7 +163,9 @@ task ValidateMd5sum {
         echo "ERROR:   Actual: $ACTUAL_MD5"
         echo "false" > valid.txt
     else
-        echo "Checksum validation successful for ~{file}"
+        echo "###################################################"
+        echo "SUCCESS: Checksum validation successful for ~{file}"
+        echo "###################################################"
         echo "true" > valid.txt
     fi
     >>>
@@ -174,7 +176,7 @@ task ValidateMd5sum {
 
     #########################
     RuntimeAttr default_attr = object {
-        cpu_cores:          1,
+        cpu_cores:          2,
         mem_gb:             8,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
@@ -244,24 +246,22 @@ task DecompressRunTarball {
         import json
 
         bc_to_bams = {}
-
         with open('barcodes.txt', 'r') as f:
             barcodes = [ line.strip() for line in f ]
-
-        for barcode in barcodes:
-            bam_file_list = f"file_lists/{barcode}_bams.txt"
-            with open(bam_file_list, 'r') as f:
-                bam_files = [line.strip() for line in f]
-            barcode_to_bams[barcode] = bam_files
+        raw_bams = []
 
         # write to file and dump to stdout so we can create a map
-        # and use that for downstream scatter logic
-        with open('barcode_to_bams.json', 'w') as f:
-            json.dump(barcode_to_bams, f, indent=2)
-
-        print(json.dumps(barcode_to_bams, indent=2))
+        # so that we can dump the output from this workflow to our datatable
+        # and keep Andrew and SunYoung from having to manually create it
+        # and upload to Terra for downstream workflows!
+        for barcode in barcodes:
+            with open(f'file_lists/{barcode}_bams.txt', 'r') as f:
+                raw_bams.append([line.strip() for line in f])
+        with open('raw_barcode_bam_paths.json', 'w') as f:
+            json.dump(barcode_to_bams, f, indent=4)
+        print(json.dumps(barcode_to_bams, indent=4))
         EOF
-    >>>
+        >>>
 
     output {
         Int directory_count = read_int("directory_count.txt")
@@ -269,8 +269,8 @@ task DecompressRunTarball {
         Array[String] barcode_dirs = read_lines("directory_list.txt")
         Array[String] barcodes = read_lines("barcodes.txt")
         Array[File] bam_lists = glob("file_lists/*_bams.txt")
-        File barcode_to_bams_json = "barcode_to_bams.json"
-        Map[String, Array[File]] barcode_to_bams_map = read_json(stdout())
+        File bam_paths_json = "raw_barcode_bam_paths.json"
+        Array[Array[File]] raw_bams = read_json(stdout())
     }
 
     #########################

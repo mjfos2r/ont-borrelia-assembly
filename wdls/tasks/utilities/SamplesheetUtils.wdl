@@ -127,7 +127,7 @@ task ParseSamplesheet {
         Array[String] experiment_id = read_lines("experiment_id.txt")
         Array[String] flow_cell_product_code = read_lines("flow_cell_product_code.txt")
         Array[String] kit = read_lines("kit.txt")
-        Array[String] barcodes = read_lines("barcode.txt")
+        Array[String] barcode = read_lines("barcode.txt")
         Array[String] sample_id = read_lines("alias.txt")
     }
 

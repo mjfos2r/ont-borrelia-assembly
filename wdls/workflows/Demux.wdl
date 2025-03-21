@@ -3,7 +3,7 @@ version 1.0
 import "../tasks/utilities/GeneralUtils.wdl" as GenUtils
 import "../tasks/utilities/SamplesheetUtils.wdl" as SSUtils
 
-workflow Preprocessing {
+workflow PreprocessAndDemultiplex {
     meta {
         description: "Take in the tarball of the bam_pass file for our run, decompress it, merge all of the bams for each barcode, rename the barcode, then trim and clean the reads"
     }
@@ -18,25 +18,30 @@ workflow Preprocessing {
         File samplesheet
     }
 
-    # Parse samplesheet to get barcode to sample name mapping
+    # Parse samplesheet to get barcode to sample name mapping and other metadata for our run.
     call SSUtils.ParseSamplesheet { input: samplesheet = samplesheet }
 
-    # Validate tarball, then decompress and process each barcode directory below
+    # Validate tarball's integrity.
     call GenUtils.ValidateMd5sum { input: file = RunTarball, checksum = RunChecksum }
 
     # Only proceed with processing if tarball is valid
-    if (ValidateMd5sum.is_valid) {
+    # Perhaps we need to create an intermediate bool to then use in the conditional?
+    # Let's try.
+    Boolean run_is_valid = ValidateMd5sum.is_valid
+
+    if (run_is_valid) {
         # Decompress the run tarball to get access to barcode dirs and BAM files
         call GenUtils.DecompressRunTarball { input: tarball = RunTarball }
     }
 
     output {
         # Metadata parsed from samplesheet
+        Array[String] flow_cell_id = ParseSamplesheet.flow_cell_id
         Array[String] position_id = ParseSamplesheet.position_id
         Array[String] experiment_id = ParseSamplesheet.experiment_id
         Array[String] flow_cell_product_code = ParseSamplesheet.flow_cell_product_code
         Array[String] kit = ParseSamplesheet.kit
-        Array[String] barcode = ParseSamplesheet.barcodes
+        Array[String] barcode = ParseSamplesheet.barcode
         Array[String] sample_id = ParseSamplesheet.sample_id
 
         # Validation output
@@ -46,6 +51,8 @@ workflow Preprocessing {
         Array[Int]? bam_counts = DecompressRunTarball.bam_counts
         Array[String]? barcode_dirs = DecompressRunTarball.barcode_dirs
         Array[File]? bam_lists = DecompressRunTarball.bam_lists
-        Map[String, Array[File]]? barcode_to_bams_map = DecompressRunTarball.barcode_to_bams_map
+        #Map[String, Array[File]]? barcode_to_bams_map = DecompressRunTarball.barcode_to_bams_map
+        Array[Array[File]]? raw_bams = DecompressRunTarball.raw_bams
+        File? bam_paths_json = DecompressRunTarball.bam_paths_json
     }
 }

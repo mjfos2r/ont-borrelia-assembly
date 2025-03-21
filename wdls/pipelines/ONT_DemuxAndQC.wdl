@@ -2,9 +2,9 @@ version 1.0
 
 import "../tasks/QC/NanoPlot.wdl" as NP
 import "../tasks/utilities/GeneralUtils.wdl" as GenUtils
-import "../workflows/Preprocessing.wdl" as Preproc
+import "../workflows/Demux.wdl" as DEMUX
 
-workflow ONT_PreprocessingAndRunQC {
+workflow ONT_DemuxAndQC {
     meta {
         description: "Take in the tarball of the bam_pass file for our run, decompress it, merge all of the bams for each barcode, rename the barcode, then trim, filter, and generate QC report for all of our samples. Also generate a NanoPlot from the ONT summary.txt file"
         author: "Michael J. Foster"
@@ -19,25 +19,17 @@ workflow ONT_PreprocessingAndRunQC {
     }
 
     input {
+        File samplesheet
         File RunTarball
         File RunChecksum
         Array[File] summary_files
         Array[File] summary_checksums
-        File samplesheet
     }
     # Get the filenames for our summary files. create an array to use in generating the final validation array..
     scatter (file in summary_files){
         String summary_filename = basename(file)
     }
     Array[String] summary_filenames = summary_filename
-
-    # Run Preprocessing workflow
-    call Preproc.Preprocessing {
-        input:
-            RunTarball = RunTarball,
-            RunChecksum = RunChecksum,
-            samplesheet = samplesheet,
-    }
 
     # now we validate our summary file(s)
     scatter (idx in range(length(summary_files))) {
@@ -51,41 +43,51 @@ workflow ONT_PreprocessingAndRunQC {
     Array[Boolean] summary_validity= summary_validation.is_valid
 
     # scatter across em and collect our false values but only if it's not valid, otherwise return no variable.
+
     scatter (valid in summary_validity) {
         if (!valid) {
             Boolean not_valid = true
         }
     }
-    # if there's any, set this to true.
-    Boolean any_invalid = length(not_valid) > 0
     #if ( !(false in summary_validity) ) { # why can't I do this simple check? ughhhh
 
 
-    if (!any_invalid) {
+    if (!defined(not_valid)) {
         call NP.NanoPlotFromSummary { input: summary_files = summary_files }
     }
 
     Array[Pair[String, Boolean]] summary_integrity = zip(summary_filenames, summary_validity)
 
+    # Run PreprocessAndDemultiplex workflow
+    call DEMUX.PreprocessAndDemultiplex {
+        input:
+            RunTarball = RunTarball,
+            RunChecksum = RunChecksum,
+            samplesheet = samplesheet,
+    }
+
     output {
         # Metadata parsed from samplesheet
-        Array[String] position_id = Preprocessing.position_id
-        Array[String] experiment_id = Preprocessing.experiment_id
-        Array[String] flow_cell_product_code = Preprocessing.flow_cell_product_code
-        Array[String] kit = Preprocessing.kit
-        Array[String] barcode = Preprocessing.barcode
-        Array[String] sample_id = Preprocessing.sample_id
+        Array[String] experiment_id = PreprocessAndDemultiplex.experiment_id
+        Array[String] flow_cell_id = PreprocessAndDemultiplex.flow_cell_id
+        Array[String] position_id = PreprocessAndDemultiplex.position_id
+        Array[String] flow_cell_product_code = PreprocessAndDemultiplex.flow_cell_product_code
+        Array[String] kit = PreprocessAndDemultiplex.kit
+        Array[String] barcode = PreprocessAndDemultiplex.barcode
+        Array[String] sample_id = PreprocessAndDemultiplex.sample_id
+        Array[Array[File]]? raw_bams = PreprocessAndDemultiplex.raw_bams
 
         # Validation output
-        Boolean md5_validation_passed = Preprocessing.is_valid
+        Boolean md5_validation_passed = PreprocessAndDemultiplex.is_valid
         Array[Pair[String, Boolean]] summary_file_integrity = summary_integrity
 
         # decompressed outputs from DecompressRunTarball if md5 is valid.
-        Int? directory_count = Preprocessing.directory_count
-        Array[Int]? bam_counts = Preprocessing.bam_counts
-        Array[String]? barcode_dirs = Preprocessing.barcode_dirs
-        Array[File]? bam_lists = Preprocessing.bam_lists
-        Map[String, Array[File]]? barcode_to_bams_map = Preprocessing.barcode_to_bams_map
+        Int? directory_count = PreprocessAndDemultiplex.directory_count
+        Array[Int]? bam_counts = PreprocessAndDemultiplex.bam_counts
+        Array[String]? barcode_dirs = PreprocessAndDemultiplex.barcode_dirs
+        Array[File]? bam_lists = PreprocessAndDemultiplex.bam_lists
+        #Map[String, Array[File]]? barcode_to_bams_map = PreprocessAndDemultiplex.barcode_to_bams_map
+        File? bam_paths_json = PreprocessAndDemultiplex.bam_paths_json
 
         # NanoPlot outputs
         File? nanoplot_map = NanoPlotFromSummary.map
