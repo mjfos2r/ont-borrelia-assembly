@@ -159,10 +159,10 @@ task ValidateMd5sum {
         echo "ERROR: CHECKSUM VALIDATION FAILED FOR ~{file}"
         echo "ERROR: Expected: $EXPECTED_MD5"
         echo "ERROR:   Actual: $ACTUAL_MD5"
-        echo "False" > valid.txt
+        echo "false" > valid.txt
     else
         echo "Checksum validation successful for ~{file}"
-        echo "True" > valid.txt
+        echo "true" > valid.txt
     fi
     >>>
 

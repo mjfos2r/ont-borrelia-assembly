@@ -1,6 +1,6 @@
 version 1.0
 
-import "../tasks/plotting/NanoPlot.wdl" as NP
+import "../tasks/QC/NanoPlot.wdl" as NP
 import "../workflows/Preprocessing.wdl" as Preproc
 
 workflow ONT_PreprocessingAndRunQC {
