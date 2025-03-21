@@ -54,6 +54,7 @@ workflow ONT_PreprocessingAndRunQC {
                 input:
                     file = summary_files[idx],
                     checksum = summary_checksums[idx]
+        }
     }
     # gather our validation statuses
     Array[Boolean] summary_validity = summary_validation.is_valid
