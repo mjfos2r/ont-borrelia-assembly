@@ -9,35 +9,51 @@ task NanoPlotFromSummary {
     }
 
     parameter_meta {
-        summary_file: "Dorado generated sequencing summary files to use as input"
+        summary_files: "Dorado generated sequencing summary file(s) to use as input"
         runtime_attr_override: "Override the default runtime attributes"
     }
 
     input {
-        File summary_file
+        Array[File] summary_files
 
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 2*ceil(size(summary_file, "GB"))
+    Int disk_size = 2*ceil(size(summary_files, "GB"))
 
     command <<<
         set -euxo pipefail
 
         NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
 
+        mkdir -p nanoplots/barcoded nanoplots/overall
+
+        # generate barcode specific reports and plots
         NanoPlot -t "${NPROCS}" \
+                --outdir nanoplots/barcoded
                  -c royalblue \
                  --N50 \
                  --tsv_stats \
                  --barcoded \
-                 --summary "~{summary_file}"
+                 --summary "~{sep=' ' summary_files}"
 
-        grep -v -e '^Metrics' -e '^highest' -e '^longest' NanoStats.txt | \
+        # generate overall reports and plots
+        NanoPlot -t "${NPROCS}" \
+                --outdir nanoplots/overall
+                 -c royalblue \
+                 --N50 \
+                 --tsv_stats \
+                 --summary "~{sep=' ' summary_files}"
+
+        # Pull the metrics from the overall stats, (both are identical but pick this one.)
+        grep -v -e '^Metrics' -e '^highest' -e '^longest' nanoplots/overall/NanoStats.txt | \
             sed 's/ >/_/' | \
             sed 's/://' | \
             awk '{ print $1 "\t" $2 }' | \
             tee map.txt
+
+        #make a tarball of all nanoplot reports and output that as a single file.
+        tar -zcf nanoplots.tar.gz nanoplots
     >>>
 
     #number_of_reads 88000
@@ -56,10 +72,9 @@ task NanoPlotFromSummary {
     #Reads_Q15       26597
 
     output {
-        File stats = "NanoStats.txt"
+        File tarball = "nanoplots.tar.gz"
         File map = "map.txt"
         Map[String, Float] stats_map = read_map("map.txt")
-        Array[File] plots = glob("*.png")
         #File ActivePores_Over_Time = "ActivePores_Over_Time.png"
         #File ActivityMap_ReadsPerChannel = "ActivityMap_ReadsPerChannel.png"
         #File CumulativeYieldPlot_Gigabases = "CumulativeYieldPlot_Gigabases.png"
