@@ -49,7 +49,7 @@ workflow ONT_PreprocessingAndRunQC {
             }
         }
     }
-    if (length(summary_files) = 1){
+    if (length(summary_files) == 1){
         call GenUtils.ValidateMd5sum as summary_validation {
                 input:
                     file = summary_files[idx],
