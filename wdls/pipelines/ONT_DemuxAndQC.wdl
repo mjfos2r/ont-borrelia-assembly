@@ -61,7 +61,6 @@ workflow ONT_DemuxAndQC {
         input:
             samplesheet = samplesheet,
             raw_bam_paths = DecompressRunTarball.raw_bam_paths
-        }
     }
 
     output {
