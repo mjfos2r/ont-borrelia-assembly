@@ -21,7 +21,7 @@ workflow ValidateAndDecompressSeqRun {
 
     call ValidateMd5sum { input: file = run_tarball, checksum = md5sum }
 
-    if (ValidateMd5sum.is_valid) { call DecompressRunTarball { input: tarball = run_tarball } }
+    if (read_boolean(ValidateMd5sum.is_valid)) { call DecompressRunTarball { input: tarball = run_tarball } }
 
     output {
         # Instead of maps, output parallel arrays
@@ -171,7 +171,7 @@ task ValidateMd5sum {
     >>>
 
     output {
-        Boolean is_valid = read_boolean("valid.txt")
+        File is_valid = "valid.txt"
     }
 
     #########################

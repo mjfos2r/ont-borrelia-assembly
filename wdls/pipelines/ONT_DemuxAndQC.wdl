@@ -25,6 +25,12 @@ workflow ONT_DemuxAndQC {
         Array[File] summary_files
         Array[File] summary_checksums
     }
+
+    ##### workflow ONTSummaryValidateAndQC {
+    #####     input {
+    #####         Array[File] summary_files = summary_files
+    #####         Array[File] checksums = summary_checksums
+    #####     }
     # Get the filenames for our summary files. create an array to use in generating the final validation array..
     scatter (file in summary_files){
         String summary_filename = basename(file)
@@ -38,12 +44,12 @@ workflow ONT_DemuxAndQC {
                 file = summary_files[idx],
                 checksum = summary_checksums[idx]
         }
+        Boolean summary_is_valid = read_boolean(summary_validation.is_valid)
     }
     # gather our validation statuses
-    Array[Boolean] summary_validity= summary_validation.is_valid
+    Array[Boolean] summary_validity = summary_is_valid
 
     # scatter across em and collect our false values but only if it's not valid, otherwise return no variable.
-
     scatter (valid in summary_validity) {
         if (!valid) {
             Boolean not_valid = true
@@ -57,7 +63,7 @@ workflow ONT_DemuxAndQC {
     }
 
     Array[Pair[String, Boolean]] summary_integrity = zip(summary_filenames, summary_validity)
-
+    ##### }
     # Run PreprocessAndDemultiplex workflow
     call DEMUX.PreprocessAndDemultiplex {
         input:

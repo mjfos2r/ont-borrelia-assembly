@@ -25,9 +25,11 @@ workflow PreprocessAndDemultiplex {
     call GenUtils.ValidateMd5sum { input: file = RunTarball, checksum = RunChecksum }
 
     # Only proceed with processing if tarball is valid
-    # Perhaps we need to create an intermediate bool to then use in the conditional?
-    # Let's try.
-    Boolean run_is_valid = ValidateMd5sum.is_valid
+    # okay I've no clue why this is skipping, perhaps it's something to do with how the bool is being read?
+    # So instead of reading the bool in the output of the ValidateMd5sum task, just output the is_valid file and then read the bool here?
+    # I've (tbh over) half a mind to just do the md5sum checking within the demux task and scrap this mess.
+    Boolean run_is_valid = read_boolean(ValidateMd5sum.is_valid) # I don't understand why this isn't working. It's working fine for the Summary.txt??
+
 
     if (run_is_valid) {
         # Decompress the run tarball to get access to barcode dirs and BAM files
@@ -45,7 +47,7 @@ workflow PreprocessAndDemultiplex {
         Array[String] sample_id = ParseSamplesheet.sample_id
 
         # Validation output
-        Boolean is_valid = ValidateMd5sum.is_valid
+        Boolean is_valid = run_is_valid
         # decompressed outputs from DecompressRunTarball if md5 is valid.
         Int? directory_count = DecompressRunTarball.directory_count
         Array[Int]? bam_counts = DecompressRunTarball.bam_counts
