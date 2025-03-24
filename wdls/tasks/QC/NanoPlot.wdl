@@ -35,7 +35,7 @@ task NanoPlotFromSummary {
                 --N50 \
                 --tsv_stats \
                 --barcoded \
-                --summary "~{sep=' ' summary_files}"
+                --summary ~{sep=' ' summary_files}
 
         # generate overall reports and plots
         NanoPlot -t "${NPROCS}" \
@@ -43,7 +43,7 @@ task NanoPlotFromSummary {
                  -c royalblue \
                  --N50 \
                  --tsv_stats \
-                 --summary "~{sep=' ' summary_files}"
+                 --summary ~{sep=" " summary_files}
 
         # Pull the metrics from the overall stats, (both are identical but pick this one.)
         grep -v -e '^Metrics' -e '^highest' -e '^longest' nanoplots/overall/NanoStats.txt | \
