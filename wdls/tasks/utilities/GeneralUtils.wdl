@@ -50,7 +50,7 @@ task CompressTarPigz {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = ceil(size(files, "GB")) + 15
+    Int disk_size = 50 + ceil(size(files, "GB"))*2
 
     command <<<
         NUM_CPUS=$(cat /proc/cpuinfo | awk '/^processor/{print }' | wc -l)
@@ -79,7 +79,7 @@ task CompressTarPigz {
     runtime {
         cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
         memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
-        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " HDD"
+        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " SSD"
         bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
         preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
         maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
@@ -148,7 +148,7 @@ task ValidateMd5sum {
     }
 
     # Estimate disk size - the compressed archive plus space for extraction and output
-    Int disk_size = ceil(size(file, "GB")) + 15
+    Int disk_size = ceil(size(file, "GB")) + 40
 
     command <<<
     set -euxo pipefail # crash out
@@ -188,7 +188,7 @@ task ValidateMd5sum {
     runtime {
         cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
         memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
-        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " HDD"
+        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " SSD"
         bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
         preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
         maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
@@ -214,7 +214,7 @@ task DecompressRunTarball {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 15 + ceil(size(tarball, "GB") * 3)
+    Int disk_size = 50 + ceil(size(tarball, "GB") * 3)
 
     command <<<
         set -euxo pipefail
@@ -287,7 +287,7 @@ task DecompressRunTarball {
     runtime {
         cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
         memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
-        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " HDD"
+        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " SSD"
         bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
         preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
         maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
