@@ -46,33 +46,18 @@ workflow ONT_DemuxAndQC {
         }
         Boolean summary_is_valid = read_boolean(summary_validation.is_valid)
     }
-    # gather our validation statuses
+    # gather our validation statuses. it'll be useful when it fails due to corruption that can't be dealt with in a conditional check.
     Array[Boolean] summary_validity = summary_is_valid
-
-    # scatter across em and collect our false values but only if it's not valid, otherwise return no variable.
-    scatter (valid in summary_validity) {
-        if (!valid) {
-            Boolean not_valid = true
-        }
-    }
-
-    if (!defined(not_valid)) {
-        call NP.NanoPlotFromSummary { input: summary_files = summary_files }
-    }
-
     Array[Pair[String, Boolean]] summary_integrity = zip(summary_filenames, summary_validity)
-    ##### }
 
-    # Validate tarball's integrity.
+    # begone validation checks. If it's invalid just check after the execution fails...
+    call NP.NanoPlotFromSummary { input: summary_files = summary_files }
+
+    # Validate tarball's integrity but power through regardless since cromwell hates me and won't do a simple boolean conditional...
     call GenUtils.ValidateMd5sum as run_bams_validation { input: file = RunTarball, checksum = RunChecksum }
-
-    Boolean run_is_valid = read_boolean(run_bams_validation.is_valid) # I don't understand why this isn't working. It's working fine for the Summary.txt??
-
-    if (run_is_valid) {
-        # Decompress the run tarball to get access to barcode dirs and BAM files
-        call GenUtils.DecompressRunTarball { input: tarball = RunTarball }
-
-        call SSUtils.ParseSamplesheetToDataTable {
+    Boolean run_is_valid = read_boolean(run_bams_validation.is_valid)
+    call GenUtils.DecompressRunTarball { input: tarball = RunTarball }
+    call SSUtils.ParseSamplesheetToDataTable {
         input:
             samplesheet = samplesheet,
             raw_bam_paths = DecompressRunTarball.raw_bam_paths
@@ -81,14 +66,14 @@ workflow ONT_DemuxAndQC {
 
     output {
         # Metadata parsed from samplesheet
-        Array[String]? flow_cell_id = ParseSamplesheetToDataTable.flow_cell_id
-        Array[String]? position_id = ParseSamplesheetToDataTable.position_id
-        Array[String]? experiment_id = ParseSamplesheetToDataTable.experiment_id
-        Array[String]? flow_cell_product_code = ParseSamplesheetToDataTable.flow_cell_product_code
-        Array[String]? kit = ParseSamplesheetToDataTable.kit
-        Array[String]? barcode = ParseSamplesheetToDataTable.barcode
-        Array[String]? sample_id = ParseSamplesheetToDataTable.sample_id
-        Array[String]? bam_paths = ParseSamplesheetToDataTable.bam_paths
+        Array[String] flow_cell_id = ParseSamplesheetToDataTable.flow_cell_id
+        Array[String] position_id = ParseSamplesheetToDataTable.position_id
+        Array[String] experiment_id = ParseSamplesheetToDataTable.experiment_id
+        Array[String] flow_cell_product_code = ParseSamplesheetToDataTable.flow_cell_product_code
+        Array[String] kit = ParseSamplesheetToDataTable.kit
+        Array[String] barcode = ParseSamplesheetToDataTable.barcode
+        Array[String] sample_id = ParseSamplesheetToDataTable.sample_id
+        Array[String] bam_paths = ParseSamplesheetToDataTable.bam_paths
         File? samplesheet_with_bams = ParseSamplesheetToDataTable.samplesheet_with_bams
 
         # Validation output
@@ -96,17 +81,17 @@ workflow ONT_DemuxAndQC {
         Boolean run_validation_status = run_is_valid
 
         # decompressed outputs from DecompressRunTarball if md5 is valid.
-        Int? directory_count = DecompressRunTarball.directory_count
-        Array[Int]? bam_counts = DecompressRunTarball.bam_counts
-        Array[String]? barcode_dirs = DecompressRunTarball.barcode_dirs
-        Array[File]? bam_lists = DecompressRunTarball.bam_lists
-        Array[Array[File]]? raw_bam_paths = DecompressRunTarball.raw_bam_paths
+        Int directory_count = DecompressRunTarball.directory_count
+        Array[Int] bam_counts = DecompressRunTarball.bam_counts
+        Array[String] barcode_dirs = DecompressRunTarball.barcode_dirs
+        Array[File] bam_lists = DecompressRunTarball.bam_lists
+        Array[Array[File]] raw_bam_paths = DecompressRunTarball.raw_bam_paths
         File? bam_paths_json = DecompressRunTarball.bam_paths_json
 
         Array[Pair[String, Boolean]] summary_file_integrity = summary_integrity
         # NanoPlot outputs
-        File? nanoplot_map = NanoPlotFromSummary.map
-        File? nanoplot_tarball = NanoPlotFromSummary.tarball
-        Map[String, Float]? nanoplot_stats_map = NanoPlotFromSummary.stats_map
+        File nanoplot_map = NanoPlotFromSummary.map
+        File  nanoplot_tarball = NanoPlotFromSummary.tarball
+        Map[String, Float]  nanoplot_stats_map = NanoPlotFromSummary.stats_map
     }
 }
