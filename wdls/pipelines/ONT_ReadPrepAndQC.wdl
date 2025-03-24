@@ -11,10 +11,6 @@ workflow ONT_ReadPrepAndQC {
     }
 
     parameter_meta {
-        experiment_id: "Run ID for the sample being processed"
-        flow_cell_product_code: "Flow cell ID for the sample being processed"
-        kit: "Kit used to barcode and prep the sample"
-        barcode: "barcode id for the sample to be processed"
         sample_id: "sample_alias for the sample to be processed"
         raw_bams: "array of unmerged bam files to merge and process"
         reference_fa: "reference genome to align reads against"
@@ -51,9 +47,9 @@ workflow ONT_ReadPrepAndQC {
         File raw_telomere_reads = ResolveTelomeres.telomere_fastq
         File clipped_telomere_reads = ResolveTelomeres.clipped_telomeres
         File fixed_reads = ResolveTelomeres.fixed_reads
-        File raw_telo_bam = SingleReadsQC.raw_telo_bam
+        File rawtelo_Reads2Refbam = SingleReadsQC.raw_telo_bam
         Array[File] raw_telo_coverage_plots = SingleReadsQC.raw_telo_coverage_plots
-        File fixed_telo_bam = SingleReadsQC.fixed_telo_bam
+        File fixedtelo_Reads2Refbam = SingleReadsQC.fixed_telo_bam
         Array[File] fixed_telo_coverage_plots = SingleReadsQC.fixed_telo_coverage_plots
     }
 }
