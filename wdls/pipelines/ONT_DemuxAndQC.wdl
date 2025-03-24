@@ -73,7 +73,7 @@ workflow ONT_DemuxAndQC {
         Array[String] barcode = ParseSamplesheetToDataTable.barcode
         Array[String] sample_id = ParseSamplesheetToDataTable.sample_id
         Array[String] bam_paths = ParseSamplesheetToDataTable.bam_paths
-        File? samplesheet_with_bams = ParseSamplesheetToDataTable.samplesheet_with_bams
+        File samplesheet_with_bams = ParseSamplesheetToDataTable.samplesheet_with_bams
 
         # Validation output
         File run_validation_file = run_bams_validation.is_valid
@@ -85,7 +85,7 @@ workflow ONT_DemuxAndQC {
         Array[String] barcode_dirs = DecompressRunTarball.barcode_dirs
         Array[File] bam_lists = DecompressRunTarball.bam_lists
         Array[Array[File]] raw_bam_paths = DecompressRunTarball.raw_bam_paths
-        File? bam_paths_json = DecompressRunTarball.bam_paths_json
+        File bam_paths_json = DecompressRunTarball.bam_paths_json
 
         Array[Pair[String, Boolean]] summary_file_integrity = summary_integrity
         # NanoPlot outputs
