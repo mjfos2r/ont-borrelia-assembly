@@ -93,6 +93,8 @@ task ParseSamplesheetToDataTable {
     input {
         File samplesheet
         Array[Array[File]] raw_bam_paths
+
+        RuntimeAttr? runtime_attr_override
     }
 
     command <<<
