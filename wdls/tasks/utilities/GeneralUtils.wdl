@@ -214,7 +214,7 @@ task DecompressRunTarball {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 10 + ceil(size(tarball, "GB") * 3)
+    Int disk_size = 15 + ceil(size(tarball, "GB") * 3)
 
     command <<<
         set -euxo pipefail
@@ -248,18 +248,18 @@ task DecompressRunTarball {
         bc_to_bams = {}
         with open('barcodes.txt', 'r') as f:
             barcodes = [ line.strip() for line in f ]
-        raw_bams = []
 
-        # write to file and dump to stdout so we can create a map
-        # so that we can dump the output from this workflow to our datatable
-        # and keep Andrew and SunYoung from having to manually create it
-        # and upload to Terra for downstream workflows!
         for barcode in barcodes:
             with open(f'file_lists/{barcode}_bams.txt', 'r') as f:
-                raw_bams.append([line.strip() for line in f])
+                bc_to_bams[barcode] = [line.strip() for line in f]
+
+        # Write to JSON file
         with open('raw_barcode_bam_paths.json', 'w') as f:
-            json.dump(barcode_to_bams, f, indent=4)
-        print(json.dumps(barcode_to_bams, indent=4))
+            json.dump(list(bc_to_bams.values()), f, indent=4)
+
+        # Optional print for debug
+        print(json.dumps(list(bc_to_bams.values()), indent=4))
+
         EOF
         >>>
 
@@ -270,7 +270,7 @@ task DecompressRunTarball {
         Array[String] barcodes = read_lines("barcodes.txt")
         Array[File] bam_lists = glob("file_lists/*_bams.txt")
         File bam_paths_json = "raw_barcode_bam_paths.json"
-        Array[Array[File]] raw_bams = read_json(stdout())
+        Array[Array[File]] raw_bam_paths = read_json("raw_barcode_bam_paths.json")
     }
 
     #########################

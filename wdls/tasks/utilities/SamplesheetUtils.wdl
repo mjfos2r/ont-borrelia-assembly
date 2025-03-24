@@ -80,48 +80,71 @@ task RenameFile {
 }
 
 
-task ParseSamplesheet {
+task ParseSamplesheetToDataTable {
     meta {
-        description: "Parse our run's samplesheet so that we can rename our files to the sample_alias"
+        description: "Parse the samplesheet and extract per-column arrays, also create a full TSV with an added raw_bams column for easy use as a Cromwell DataTable."
     }
 
     parameter_meta {
-        samplesheet: "csv samplesheet"
+        samplesheet: "CSV-formatted samplesheet with sample metadata. Formatted per ONT's guidelines except renamed column: alias => sample_id and output a DataTable for Cromwell input."
+        raw_bam_paths: "Array of BAM file paths per sample, each being an array of BAMs."
     }
 
     input {
         File samplesheet
-        RuntimeAttr? runtime_attr_override
+        Array[Array[File]] raw_bam_paths
     }
 
     command <<<
         set -euxo pipefail
 
         python3 << EOF
+        import csv
+        import json
         from collections import defaultdict
 
+        # Get our bam paths and format this as a json dump.
+        bam_paths = ~{sep=',' raw_bam_paths}
+        bam_path_strings = [json.dumps([str(p) for p in paths]) for paths in bam_paths]
+
+        # Read in our samplesheet CSV
         with open("~{samplesheet}", 'r') as infile:
-            lines = infile.readlines()
+            reader = list(csv.reader(infile))
+            header = reader[0]
+            rows = reader[1:]
 
-        keys = lines[0].strip().split(',')
+        # Transpose into column-wise defaultdict(list)
         vals = defaultdict(list)
+        for row in rows:
+            for idx, key in enumerate(header):
+                if idx < len(row):
+                    vals[key].append(row[idx])
 
-        for row in lines[1:]:
-            line = row.strip().split(',')
-            for idx, key in enumerate(keys):
-                if idx < len(line):  # no bad rows...
-                    vals[key].append(line[idx])
+        # dump each col to a file. (which can be input as Array[String])
+        for key, values in vals.items():
+            outname = key.lower().replace(" ", "_") + ".txt"
+            with open(outname, 'w') as out:
+                out.write('\n'.join(values))
 
-        # Also write individual files for debugging and use later.
-        for key in vals.keys():
-            cleaned_key = key.lower().replace(' ', '_')
-            with open(f"{cleaned_key}.txt", 'w') as out:
-                out.write('\n'.join(vals[key]))
+        # Write bam_paths.txt (for downstream input as Array[File])
+        with open("bam_paths.txt", 'w') as out:
+            out.write('\n'.join(bam_path_strings))
+
+        # Get the experiment id and set the output filename for clarity once downloaded.
+        DataTable_out = f"{vals['experiment_id'][1]}__DataTable.tsv"
+
+        # Write combined TSV with bam_paths as new column that can be uploaded and directly used as a DataTable in Cromwell.
+        new_header = header + ["raw_bams"]
+        with open(f"{DataTable_out}", 'w', newline='') as out:
+            writer = csv.writer(out, delimiter='\t')
+            writer.writerow(new_header)
+            for i, row in enumerate(rows):
+                bp = bam_path_strings[i] if i < len(bam_path_strings) else "[]" # this is bad but oh well.
+                writer.writerow(row + [bp])
         EOF
     >>>
 
     output {
-        # Optional individual outputs for backward compatibility
         Array[String] flow_cell_id = read_lines("flow_cell_id.txt")
         Array[String] position_id = read_lines("position_id.txt")
         Array[String] experiment_id = read_lines("experiment_id.txt")
@@ -129,26 +152,8 @@ task ParseSamplesheet {
         Array[String] kit = read_lines("kit.txt")
         Array[String] barcode = read_lines("barcode.txt")
         Array[String] sample_id = read_lines("alias.txt")
-    }
-
-    #########################
-    RuntimeAttr default_attr = object {
-        cpu_cores:          1,
-        mem_gb:             4,
-        disk_gb:            4,
-        boot_disk_gb:       10,
-        preemptible_tries:  2,
-        max_retries:        1,
-        docker:             "python:3.9-slim"
-    }
-    RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
-    runtime {
-        cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
-        memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
-        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " HDD"
-        bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
-        preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
-        maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
-        docker:                 select_first([runtime_attr.docker,            default_attr.docker])
+        Array[String] bam_paths = read_lines("bam_paths.txt")
+        File samplesheet_with_bams = glob("*__DataTable.tsv")[0]
     }
 }
+
