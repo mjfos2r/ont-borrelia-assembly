@@ -10,12 +10,13 @@ task NanoPlotFromSummary {
 
     parameter_meta {
         summary_files: "Dorado generated sequencing summary file(s) to use as input"
+        is_valid: "[ Default: true ] Boolean indicating whether or not the summary file is a valid summary file"
         runtime_attr_override: "Override the default runtime attributes"
     }
 
     input {
         Array[File] summary_files
-
+        Boolean is_valid = True
         RuntimeAttr? runtime_attr_override
     }
 
@@ -23,6 +24,10 @@ task NanoPlotFromSummary {
 
     command <<<
         set -euxo pipefail
+
+        echo "#####################################"
+        echo "# RUN TARBALL IS VALID: ~{is_valid} #"
+        echo "#####################################"
 
         NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
 
