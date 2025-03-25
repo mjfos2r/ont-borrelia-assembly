@@ -21,7 +21,7 @@ task ResolveTelomeres {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 4*ceil(size(reads, "GB")) + 20
+    Int disk_size = 40 + 4*ceil(size(reads, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -38,7 +38,7 @@ task ResolveTelomeres {
 
         # Step 3: Extract em by read_id
         echo "Extracting telomere reads..."
-        seqkit grep -f "~{sample_id}".telomere_read_ids.txt "~{reads}" > "~{sample_id}".raw_telomeres.fastq
+        seqkit grep -f "~{sample_id}".telomere_read_ids.txt  > "~{sample_id}".raw_telomeres.fastq
 
         # Step 4: Clip em
         echo "Clipping telomere reads..."
@@ -47,6 +47,9 @@ task ResolveTelomeres {
         # Step 5: Merge clipped telomere reads and remove the unclipped parents
         echo "Filtering out telomere reads..."
         /opt/filterbyname.py "~{reads}" "~{sample_id}".clipped_telomeres.fastq "~{sample_id}.fixed.fastq"
+
+        # step 6: gzip reads.
+        cat "~{sample_id}.fixed.fastq" | gzip -9 > "~{sample_id}.fixed.fastq.gz"
     >>>
 
     output {
@@ -54,7 +57,7 @@ task ResolveTelomeres {
         File telomere_read_ids = "~{sample_id}.telomere_read_ids.txt"
         File telomere_fastq = "~{sample_id}.raw_telomeres.fastq"
         File clipped_telomeres = "~{sample_id}.clipped_telomeres.fastq"
-        File fixed_reads = "~{sample_id}.fixed.fastq"
+        File fixed_reads = "~{sample_id}.fixed.fastq.gz"
     }
     # do not preempt
     #########################
@@ -71,7 +74,7 @@ task ResolveTelomeres {
     runtime {
         cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
         memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
-        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " HDD"
+        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " SSD"
         bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
         preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
         maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
