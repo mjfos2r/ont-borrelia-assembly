@@ -112,7 +112,7 @@ task Bam2Fastq {
     NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
 
     # preserve all tags that dorado puts in the BAM.
-    samtools fastq -@ "$NPROCS" -T '*' dorado.bam | gzip -c > "~{filename}.fastq.gz"
+    cat "~{input_bam}" | samtools fastq -@ "$NPROCS" -T '*' - | gzip -c > "~{filename}.fastq.gz"
     >>>
 
     output {
