@@ -16,7 +16,7 @@ task NanoPlotFromSummary {
 
     input {
         Array[File] summary_files
-        Boolean is_valid = True
+        Boolean is_valid = true
         RuntimeAttr? runtime_attr_override
     }
 
