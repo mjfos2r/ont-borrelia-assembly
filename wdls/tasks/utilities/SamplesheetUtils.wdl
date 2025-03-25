@@ -133,13 +133,14 @@ task ParseSamplesheetToDataTable {
                 experiment_id = row["experiment_id"]
                 barcode = row["barcode"]
                 row["merged_bam"] = barcode_to_bam.get(barcode, "")
+                rows.append(row)
 
         DataTable_out_tsv = f"{experiment_id}__DataTable.tsv"
         with open(DataTable_out_tsv, 'w') as outf:
             fieldnames = list(row[0].keys())
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows()
+            writer.writeheader(fieldnames)
+            writer.writerows(rows)
 
         DataTable_out_json = f"{experiment_id}__DataTable.json"
         with open(DataTable_out_json, "w") as outf:
