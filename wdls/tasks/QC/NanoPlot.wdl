@@ -25,9 +25,9 @@ task NanoPlotFromSummary {
     command <<<
         set -euxo pipefail
 
-        echo "#####################################"
-        echo "# RUN TARBALL IS VALID: ~{is_valid} #"
-        echo "#####################################"
+        echo "#######################################################"
+        echo "# SEQUENCING SUMMARIES ARE VALID: ~{sep=',' is_valid} #"
+        echo "#######################################################"
 
         NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
 
