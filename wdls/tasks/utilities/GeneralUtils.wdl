@@ -226,7 +226,7 @@ task DecompressRunTarball {
             wc -l < "$BAM_LIST" >> bam_counts.txt
 
             # merge em
-            samtools merge -f -@ "$NPROC"-o merged/"${BARCODE}.merged.bam" -b "$BAM_LIST"
+            samtools merge -f -@ "$NPROC" -o merged/"${BARCODE}.merged.bam" -b "$BAM_LIST"
         done < directory_list.txt
 
         >>>

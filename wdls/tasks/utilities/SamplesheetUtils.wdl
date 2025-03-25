@@ -88,7 +88,7 @@ task ParseSamplesheetToDataTable {
 
     parameter_meta {
         samplesheet: "CSV-formatted samplesheet with sample metadata. Formatted per ONT's guidelines except renamed column: alias => sample_id and output a DataTable for Cromwell input."
-        merged_bams: "Map[String, Array[String]]: List of bam file paths (delocalized) for each barcode."
+        merged_bams: "Array[File]: List of bam file paths (delocalized) for each barcode."
     }
 
     input {
@@ -130,7 +130,7 @@ task ParseSamplesheetToDataTable {
         with open("~{samplesheet}", 'r', newline='') as infile:
             reader = list(csv.DictReader(infile, delimiter=','))
             for row in reader:
-                experiment_id = row["experiment_id"]
+                experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
                 row["merged_bam"] = barcode_to_bam.get(barcode, "")
                 rows.append(row)
@@ -139,7 +139,7 @@ task ParseSamplesheetToDataTable {
         with open(DataTable_out_tsv, 'w') as outf:
             fieldnames = list(row[0].keys())
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
-            writer.writeheader(fieldnames)
+            writer.writeheader()
             writer.writerows(rows)
 
         DataTable_out_json = f"{experiment_id}__DataTable.json"
