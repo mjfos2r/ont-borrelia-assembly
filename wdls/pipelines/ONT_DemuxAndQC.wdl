@@ -25,6 +25,8 @@ workflow ONT_DemuxAndQC {
         Array[File] summary_files
         Array[File] summary_checksums
     }
+    ## All of the md5sum validation needs to be migrated over to terra's gcpmd5sum task.
+    # not breaking everything right after it's functional. that's a downstream problem.
 
     # scatter across the summary file(s) and pull the name(s) for our validation array
     scatter (file in summary_files){
@@ -79,6 +81,7 @@ workflow ONT_DemuxAndQC {
         Array[Int] bam_counts = DecompressRunTarball.bam_counts
         Array[String] barcode = DecompressRunTarball.barcode
         Array[File] merged_bam = DecompressRunTarball.merged_bam
+        File merged_bam_gcp_paths = DecompressRunTarball.glob_paths
 
         Array[Pair[String, Boolean]] summary_file_integrity = summary_integrity
 
