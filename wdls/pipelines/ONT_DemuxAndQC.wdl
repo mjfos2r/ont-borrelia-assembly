@@ -55,8 +55,10 @@ workflow ONT_DemuxAndQC {
 
     # Validate tarball's integrity but power through regardless since cromwell hates me and won't do a simple boolean conditional...
     call GenUtils.ValidateMd5sum as run_bams_validation { input: file = RunTarball, checksum = RunChecksum }
+    # input this to the decompression step so that we can stage this and prevent issues with cromwell trying to move the same file at the same time.
+    # Since I think that may be an issue. (I have no proof just a hunch)
     Boolean run_is_valid = read_boolean(run_bams_validation.is_valid)
-    call GenUtils.DecompressRunTarball { input: tarball = RunTarball }
+    call GenUtils.DecompressRunTarball { input: tarball = RunTarball, is_valid = run_is_valid }
     call SSUtils.ParseSamplesheetToDataTable {
         input:
             samplesheet = samplesheet,

@@ -181,6 +181,7 @@ task DecompressRunTarball {
 
     input {
         File tarball
+        Boolean is_valid
 
         # Runtime parameters
         Int num_cpus = 16
@@ -198,6 +199,9 @@ task DecompressRunTarball {
         mkdir -p extracted
         mkdir -p merged
 
+        echo "#####################################"
+        echo "# RUN TARBALL IS VALID: ~{is_valid} #"
+        echo "#####################################"
         # crack the tarball, strip the top bam_pass component so we're left with barcode dirs.
         tar --use-compress-program=pigz -xf ~{tarball} -C extracted --strip-components=1
 
