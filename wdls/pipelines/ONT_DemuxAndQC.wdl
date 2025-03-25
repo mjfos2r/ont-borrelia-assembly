@@ -51,7 +51,7 @@ workflow ONT_DemuxAndQC {
     Array[Pair[String, Boolean]] summary_integrity = zip(summary_filenames, summary_validity)
 
     # begone validation checks. If it's invalid just check after the execution fails...
-    call NP.NanoPlotFromSummary { input: summary_files = summary_files }
+    call NP.NanoPlotFromSummary { input: summary_files = summary_files, is_valid = summary_is_valid }
 
     # Validate tarball's integrity but power through regardless since cromwell hates me and won't do a simple boolean conditional...
     call GenUtils.ValidateMd5sum as run_bams_validation { input: file = RunTarball, checksum = RunChecksum }
