@@ -105,7 +105,7 @@ task ParseSamplesheetToDataTable {
 
         cat ~{sep='\n' merged_bams} > merged_bams.txt
 
-        python3 << EOF
+        python3 - <<EOF
         import os
         import csv
         import json
@@ -144,6 +144,7 @@ task ParseSamplesheetToDataTable {
         DataTable_out_json = f"{experiment_id}__DataTable.json"
         with open(DataTable_out_json, "w") as outf:
             json.dump(rows, outf, indent=2)
+
         EOF
     >>>
 
