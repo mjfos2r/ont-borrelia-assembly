@@ -10,13 +10,13 @@ task NanoPlotFromSummary {
 
     parameter_meta {
         summary_files: "Dorado generated sequencing summary file(s) to use as input"
-        is_valid: "[ Default: true ] Boolean indicating whether or not the summary file is a valid summary file"
+        is_valid: "Array of booleans for each summary indicating file integrity."
         runtime_attr_override: "Override the default runtime attributes"
     }
 
     input {
         Array[File] summary_files
-        Boolean is_valid = true
+        Array[Boolean] is_valid
         RuntimeAttr? runtime_attr_override
     }
 
