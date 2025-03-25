@@ -103,6 +103,8 @@ task ParseSamplesheetToDataTable {
     command <<<
         set -euxo pipefail
 
+        write_lines(merged_bams) > merged_bams.txt
+
         python3 << EOF
         import os
         import csv
@@ -113,27 +115,31 @@ task ParseSamplesheetToDataTable {
         # if this actually outputs delocalized paths I'll be so surprised.
         # let's try it anyway!
         barcode_to_bam = {}
-        for path in ~{sep=',' merged_bams}:
-            filename = os.path.basename(path)
-            barcode = filename.split(".")[0] # barcode01.merged.bam
-            barcode_to_bam[barcode] = path
+        with open("merged_bams.txt", 'r') as f:
+            for line in f:
+                path = line.strip()
+                filename = os.path.basename(path)
+                barcode = filename.split(".")[0] # barcode01.merged.bam
+                barcode_to_bam[barcode] = path
 
+        experiment_id = ""
         rows = []
         # Read in our samplesheet CSV
         with open("~{samplesheet}", 'r', newline='') as infile:
             reader = list(csv.DictReader(infile, delimiter=','))
             for row in reader:
+                experiment_id = row["experiment_id"]
                 barcode = row["barcode"]
                 row["merged_bam"] = barcode_to_bam.get(barcode, "")
 
-        DataTable_out_tsv = f"{vals['experiment_id'][1]}__DataTable.tsv"
+        DataTable_out_tsv = f"{experiment_id}__DataTable.tsv"
         with open(DataTable_out_tsv, 'w') as outf:
             fieldnames = list(row[0].keys())
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows()
 
-        DataTable_out_json = f"{vals['experiment_id'][1]}__DataTable.json"
+        DataTable_out_json = f"{experiment_id}__DataTable.json"
         with open(DataTable_out_json, "w") as outf:
             json.dump(rows, outf, indent=2)
         EOF
