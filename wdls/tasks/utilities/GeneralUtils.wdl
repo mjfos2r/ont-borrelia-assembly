@@ -210,6 +210,8 @@ task DecompressRunTarball {
         cut -d'/' -f2 directory_list.txt > barcodes.txt
         mkdir -p file_lists
 
+        # Count the number of directories for verification
+        wc -l directory_list.txt | awk '{print $1}' > directory_count.txt
         # Create/clear the counts file before the loop
         true > bam_counts.txt
 
@@ -224,11 +226,9 @@ task DecompressRunTarball {
             wc -l < "$BAM_LIST" >> bam_counts.txt
 
             # merge em
-            samtools merge -f -@ "$NPROC" -f -o merged/"${BARCODE}.merged.bam" -b "$BAM_LIST"
+            samtools merge -f -@ "$NPROC"-o merged/"${BARCODE}.merged.bam" -b "$BAM_LIST"
         done < directory_list.txt
 
-        # Count the number of directories for verification
-        wc -l directory_list.txt | awk '{print $1}' > directory_count.txt
         >>>
 
     output {
