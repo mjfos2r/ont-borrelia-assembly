@@ -365,8 +365,6 @@ task RenameFile {
     }
 }
 
-version 1.0
-
 workflow GetGcpFileMd5 {
     # From broadinstitute/ops-terra-utils/wdl/GetGcpFileMd5.wdl
     input {
