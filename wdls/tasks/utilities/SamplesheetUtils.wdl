@@ -103,7 +103,7 @@ task ParseSamplesheetToDataTable {
     command <<<
         set -euxo pipefail
 
-        write_lines(merged_bams) > merged_bams.txt
+        cat ~{sep='\n' merged_bams} > merged_bams.txt
 
         python3 << EOF
         import os
@@ -118,6 +118,8 @@ task ParseSamplesheetToDataTable {
         with open("merged_bams.txt", 'r') as f:
             for line in f:
                 path = line.strip()
+                print(f"Input Path From Cromwell: {path}")
+                #gcs_path = path.replace("cromwell_root/", "gs://")
                 filename = os.path.basename(path)
                 barcode = filename.split(".")[0] # barcode01.merged.bam
                 barcode_to_bam[barcode] = path
