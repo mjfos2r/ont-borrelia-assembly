@@ -65,13 +65,14 @@ task CompressTarPigz {
         File tarball = "~{name}.tar.gz"
         File checksum = "~{name}.tar.gz.md5"
     }
+    # How about you preempt these hands GCP.
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
         mem_gb:             mem_gb,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/basic:latest"
     }
@@ -173,14 +174,14 @@ task ValidateMd5sum {
     output {
         File is_valid = "valid.txt"
     }
-
+    # DO NOT PREEMPT FTLOG.
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          2,
         mem_gb:             8,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/basic:latest"
     }
@@ -274,12 +275,13 @@ task DecompressRunTarball {
     }
 
     #########################
+    # DO NOT PREEMPT THIS JOB FOR THE LOVE OF ALL THAT IS GOOD IN THIS WORLD.
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
         mem_gb:             mem_gb,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/basic-python:3.11-slim"
     }

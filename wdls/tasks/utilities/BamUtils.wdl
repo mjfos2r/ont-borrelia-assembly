@@ -64,13 +64,14 @@ task MergeBams {
         File merged_bam_index = "~{output_bam}.bai"
         File stats = "~{output_bam}.stats"
     }
+    # no preempt.
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          4,
         mem_gb:             8,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/samtools:latest"
     }
@@ -117,6 +118,7 @@ task Bam2Fastq {
     output {
         File fastq = "~{filename}.fastq.gz"
     }
+    # no preempt.
     #########################
     # HOW TO SPECIFY GPU?
     RuntimeAttr default_attr = object {
@@ -124,7 +126,7 @@ task Bam2Fastq {
         mem_gb:             8,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/samtools:latest"
     }

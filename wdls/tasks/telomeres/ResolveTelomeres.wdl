@@ -56,14 +56,14 @@ task ResolveTelomeres {
         File clipped_telomeres = "~{sample_id}.clipped_telomeres.fastq"
         File fixed_reads = "~{sample_id}.fixed.fastq"
     }
-
+    # do not preempt
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          4,
         mem_gb:             16,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "us.gcr.io/terra-942df462/telomere-tools:latest"
     }

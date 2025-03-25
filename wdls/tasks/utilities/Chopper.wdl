@@ -60,14 +60,14 @@ task Chopper {
         File stats = "chopper_stats.tsv"
         Map[String, Int] stats_map = read_map("chopper_stats.tsv")
     }
-
+    # Do not preempt.
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
         mem_gb:             8,
         disk_gb:            disk_size,
         boot_disk_gb:       25,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "us.gcr.io/terra-942df462/chopper:latest" #FIX
     }
