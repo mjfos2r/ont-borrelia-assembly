@@ -99,7 +99,7 @@ task ParseSamplesheetToDataTable {
         Int mem_gb = 16
         RuntimeAttr? runtime_attr_override
     }
-    Int disk_size = 50 + ceil(size(merged_bams, "GB"))
+    Int disk_size = 50 + ceil(size(samplesheet, "GB"))
     command <<<
         set -euxo pipefail
 
