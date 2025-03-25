@@ -26,12 +26,7 @@ workflow ONT_DemuxAndQC {
         Array[File] summary_checksums
     }
 
-    ##### workflow ONTSummaryValidateAndQC {
-    #####     input {
-    #####         Array[File] summary_files = summary_files
-    #####         Array[File] checksums = summary_checksums
-    #####     }
-    # Get the filenames for our summary files. create an array to use in generating the final validation array..
+    # scatter across the summary file(s) and pull the name(s) for our validation array
     scatter (file in summary_files){
         String summary_filename = basename(file)
     }
@@ -46,7 +41,8 @@ workflow ONT_DemuxAndQC {
         }
         Boolean summary_is_valid = read_boolean(summary_validation.is_valid)
     }
-    # gather our validation statuses. it'll be useful when it fails due to corruption that can't be dealt with in a conditional check.
+
+    # gather our validation statuses. it'll be useful when it fails due to corruption that can't be dealt with in a conditional check (for some reason).
     Array[Boolean] summary_validity = summary_is_valid
     Array[Pair[String, Boolean]] summary_integrity = zip(summary_filenames, summary_validity)
 
@@ -55,10 +51,13 @@ workflow ONT_DemuxAndQC {
 
     # Validate tarball's integrity but power through regardless since cromwell hates me and won't do a simple boolean conditional...
     call GenUtils.ValidateMd5sum as run_bams_validation { input: file = RunTarball, checksum = RunChecksum }
+
     # input this to the decompression step so that we can stage this and prevent issues with cromwell trying to move the same file at the same time.
     # Since I think that may be an issue. (I have no proof just a hunch)
     Boolean run_is_valid = read_boolean(run_bams_validation.is_valid)
     call GenUtils.DecompressRunTarball { input: tarball = RunTarball, is_valid = run_is_valid }
+
+    # and now we parse our samplesheet using the paths from above!
     call SSUtils.ParseSamplesheetToDataTable {
         input:
             samplesheet = samplesheet,
