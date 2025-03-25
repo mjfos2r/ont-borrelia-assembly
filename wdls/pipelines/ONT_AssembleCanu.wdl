@@ -17,9 +17,10 @@ workflow AssembleCanu {
     }
     parameter_meta {
         sample_id: "Sample_id to name output files"
-        raw_reads_bam: "merged bam file containing reads to use in assembly polishing"
-        genome_size: "[ Default: 1500000 ] length of the target genome for our samples."
-        fixed_reads: "telomere fixed reads in fastq."
+        renamed_bam: "merged and renamed raw bam (straight from dorado) for use in assembly polishing"
+        genome_size: "[ Default: 1.5 ] length of the target genome for our samples (in megabase) that canu requires."
+        fixed_reads: "telomere fixed reads in fastq.gz"
+        fixed_Reads2Ref: "Alignment of fixed reads against the reference genome."
         reference_fa: "reference genome to pass to Quast"
         correct_error_rate: "[ Default: 0.144 ] Error rate to pass to canu for correction."
         trim_error_rate: "[ Default: 0.144 ] Error rate to pass to canu for trimming of corrected reads "
@@ -28,9 +29,11 @@ workflow AssembleCanu {
 
     input {
         String sample_id
-        Int genome_size
-        File raw_reads_bam
+        File renamed_bam
+        Float genome_size
         File fixed_reads
+        File fixed_Reads2Ref
+        File reference_fa
         Float correct_error_rate = 0.144
         Float trim_error_rate = 0.144
         Float assemble_error_rate = 0.144
