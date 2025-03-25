@@ -202,6 +202,11 @@ task DecompressRunTarball {
         echo "#####################################"
         echo "# RUN TARBALL IS VALID: ~{is_valid} #"
         echo "#####################################"
+        # handy snippet from community post: 360073540652-Cromwell-execution-directory
+        gcs_task_call_basepath=$(cat gcs_delocalization.sh | grep -o '"gs:\/\/.*/glob-.*/' | sed 's#/$##' | head -n 1)
+        echo "$gcs_task_call_basepath"
+        true > gcs_merged_bam_paths.txt
+
         # crack the tarball, strip the top bam_pass component so we're left with barcode dirs.
         tar --use-compress-program=pigz -xf ~{tarball} -C extracted --strip-components=1
 
@@ -224,9 +229,9 @@ task DecompressRunTarball {
 
             find "$DIR_PATH" -name "*.bam" | sort > "file_lists/${BARCODE}_bams.txt"
             wc -l < "$BAM_LIST" >> bam_counts.txt
-
             # merge em
             samtools merge -f -@ "$NPROC" -o merged/"${BARCODE}.merged.bam" -b "$BAM_LIST"
+            echo "${gcs_task_call_basepath}/${BARCODE}.merged.bam" >> gcs_merged_bam_paths.txt
         done < directory_list.txt
 
         >>>
@@ -241,6 +246,7 @@ task DecompressRunTarball {
 
         # output an array of our merged bam_files.
         Array[File] merged_bam = glob("merged/*.bam")
+        File glob_paths = "gcs_merged_bam_paths.txt"
     }
 
     #########################
@@ -356,5 +362,61 @@ task RenameFile {
         preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
         maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
         docker:                 select_first([runtime_attr.docker,            default_attr.docker])
+    }
+}
+
+version 1.0
+
+workflow GetGcpFileMd5 {
+    # From broadinstitute/ops-terra-utils/wdl/GetGcpFileMd5.wdl
+    input {
+        String gcp_file_path
+        Boolean create_cloud_md5_file
+        String? md5_format
+        String? docker
+        Int? memory_gb
+    }
+
+    String docker_image = select_first([docker, "us-central1-docker.pkg.dev/operations-portal-427515/ops-toolbox/ops_terra_utils_slim:latest"])
+
+    call GetFileMd5 {
+        input:
+            gcp_file_path = gcp_file_path,
+            create_cloud_md5_file = create_cloud_md5_file,
+            docker_image = docker_image,
+            md5_format = md5_format,
+            memory_gb = memory_gb
+    }
+
+    output {
+        String md5_hash = GetFileMd5.md5_hash
+    }
+}
+
+task GetFileMd5 {
+    # From broadinstitute/ops-terra-utils/wdl/GetGcpFileMd5.wdl
+    input {
+        String gcp_file_path
+        Boolean create_cloud_md5_file
+        String docker_image
+        String? md5_format
+        Int? memory_gb
+    }
+
+    command <<<
+        python /etc/terra_utils/python/get_file_md5.py \
+        --gcp_file_path ~{gcp_file_path} \
+        --output_file object_md5.txt \
+        ~{if create_cloud_md5_file then "--create_cloud_md5_file" else ""} \
+        ~{"--md5_format " + md5_format}
+    >>>
+
+    runtime {
+        docker: docker_image
+        memory: select_first([memory_gb, 4]) + " GB"
+    }
+
+    output {
+        String md5_hash = read_string("object_md5.txt")
     }
 }

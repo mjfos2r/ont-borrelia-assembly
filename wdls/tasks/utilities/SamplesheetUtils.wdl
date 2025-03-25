@@ -88,12 +88,12 @@ task ParseSamplesheetToDataTable {
 
     parameter_meta {
         samplesheet: "CSV-formatted samplesheet with sample metadata. Formatted per ONT's guidelines except renamed column: alias => sample_id and output a DataTable for Cromwell input."
-        merged_bams: "Array[File]: List of bam file paths (delocalized) for each barcode."
+        file_paths: "file containing GCS paths to the decompressed and merged bam files for addition to our DataTable"
     }
 
     input {
         File samplesheet
-        Array[File] merged_bams
+        File file_paths
 
         Int num_cpu = 4
         Int mem_gb = 16
@@ -102,8 +102,6 @@ task ParseSamplesheetToDataTable {
     Int disk_size = 50 + ceil(size(merged_bams, "GB"))
     command <<<
         set -euxo pipefail
-
-        cat ~{sep='\n' merged_bams} > merged_bams.txt
 
         python3 - <<EOF
         import os
@@ -115,11 +113,10 @@ task ParseSamplesheetToDataTable {
         # if this actually outputs delocalized paths I'll be so surprised.
         # let's try it anyway!
         barcode_to_bam = {}
-        with open("merged_bams.txt", 'r') as f:
+        with open("~{file_paths}", 'r') as f:
             for line in f:
                 path = line.strip()
                 print(f"Input Path From Cromwell: {path}")
-                #gcs_path = path.replace("cromwell_root/", "gs://")
                 filename = os.path.basename(path)
                 barcode = filename.split(".")[0] # barcode01.merged.bam
                 barcode_to_bam[barcode] = path

@@ -58,10 +58,11 @@ workflow ONT_DemuxAndQC {
     call GenUtils.DecompressRunTarball { input: tarball = RunTarball, is_valid = run_is_valid }
 
     # and now we parse our samplesheet using the paths from above!
+    # this will either fail or work perfectly.
     call SSUtils.ParseSamplesheetToDataTable {
         input:
             samplesheet = samplesheet,
-            merged_bams = DecompressRunTarball.merged_bam
+            file_paths = DecompressRunTarball.glob_paths
     }
 
     output {
