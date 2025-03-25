@@ -1,6 +1,7 @@
 version 1.0
 
 import "../workflows/QC_single.wdl" as QC
+import "../tasks/utilities/GeneralUtils.wdl" as UTILS
 import "../tasks/utilities/BamUtils.wdl" as BAM
 import "../tasks/utilities/Chopper.wdl" as CHP
 import "../tasks/telomeres/ResolveTelomeres.wdl" as TELO
@@ -19,12 +20,12 @@ workflow ONT_ReadPrepAndQC {
 
     input {
         String sample_id
-        Array[File] raw_bams
+        File merged_bam
         File reference_fa
         File contam_fa
     }
-    call BAM.MergeBams { input: input_bams = raw_bams, name = sample_id }
-    call BAM.Bam2Fastq { input: input_bam = MergeBams.merged_bam }
+    call UTILS.RenameFile { input: file = merged_bam, new_name = sample_id}
+    call BAM.Bam2Fastq { input: input_bam = RenameFile.renamed_file }
     # Get to the choppah and clean our reads!
     call CHP.Chopper { input: input_reads = Bam2Fastq.fastq, contam_fa = contam_fa }
     # process telomeric reads
@@ -40,7 +41,7 @@ workflow ONT_ReadPrepAndQC {
     }
 
     output {
-        File merged_bam = MergeBams.merged_bam
+        File renamed_bam = RenameFile.renamed_file
         File cleaned_reads = Chopper.clean_fq
         File telomere_bed = ResolveTelomeres.telomere_bed
         File telomere_read_ids = ResolveTelomeres.telomere_read_ids

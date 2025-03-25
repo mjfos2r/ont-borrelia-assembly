@@ -83,87 +83,73 @@ task RenameFile {
 task ParseSamplesheetToDataTable {
     meta {
         description: "Parse the samplesheet and extract per-column arrays, also create a full TSV with an added raw_bams column for easy use as a Cromwell DataTable."
+        # I know this is busted but we've gotta see how this changes things.
     }
 
     parameter_meta {
         samplesheet: "CSV-formatted samplesheet with sample metadata. Formatted per ONT's guidelines except renamed column: alias => sample_id and output a DataTable for Cromwell input."
-        raw_bam_paths: "Array of BAM file paths per sample, each being an array of BAMs."
+        merged_bams: "Map[String, Array[String]]: List of bam file paths (delocalized) for each barcode."
     }
 
     input {
         File samplesheet
-        Array[Array[File]] raw_bam_paths
+        Array[File] merged_bams
 
+        Int num_cpu = 4
+        Int mem_gb = 16
         RuntimeAttr? runtime_attr_override
     }
-
+    Int disk_size = 50 + ceil(size(merged_bams, "GB"))
     command <<<
         set -euxo pipefail
 
         python3 << EOF
+        import os
         import csv
         import json
+
         from collections import defaultdict
 
-        # Get our bam paths and format this as a json dump.
-        bam_paths = ~{sep=',' raw_bam_paths}
-        bam_path_strings = [json.dumps([str(p) for p in paths]) for paths in bam_paths]
+        # if this actually outputs delocalized paths I'll be so surprised.
+        # let's try it anyway!
+        barcode_to_bam = {}
+        for path in ~{sep=',' merged_bams}:
+            filename = os.path.basename(path)
+            barcode = filename.split(".")[0] # barcode01.merged.bam
+            barcode_to_bam[barcode] = path
 
+        rows = []
         # Read in our samplesheet CSV
-        with open("~{samplesheet}", 'r') as infile:
-            reader = list(csv.reader(infile))
-            header = reader[0]
-            rows = reader[1:]
+        with open("~{samplesheet}", 'r', newline='') as infile:
+            reader = list(csv.DictReader(infile, delimiter=','))
+            for row in reader:
+                barcode = row["barcode"]
+                row["merged_bam"] = barcode_to_bam.get(barcode, "")
 
-        # Transpose into column-wise defaultdict(list)
-        vals = defaultdict(list)
-        for row in rows:
-            for idx, key in enumerate(header):
-                if idx < len(row):
-                    vals[key].append(row[idx])
+        DataTable_out_tsv = f"{vals['experiment_id'][1]}__DataTable.tsv"
+        with open(DataTable_out_tsv, 'w') as outf:
+            fieldnames = list(row[0].keys())
+            writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows()
 
-        # dump each col to a file. (which can be input as Array[String])
-        for key, values in vals.items():
-            outname = key.lower().replace(" ", "_") + ".txt"
-            with open(outname, 'w') as out:
-                out.write('\n'.join(values))
-
-        # Write bam_paths.txt (for downstream input as Array[File])
-        with open("bam_paths.txt", 'w') as out:
-            out.write('\n'.join(bam_path_strings))
-
-        # Get the experiment id and set the output filename for clarity once downloaded.
-        DataTable_out = f"{vals['experiment_id'][1]}__DataTable.tsv"
-
-        # Write combined TSV with bam_paths as new column that can be uploaded and directly used as a DataTable in Cromwell.
-        new_header = header + ["raw_bams"]
-        with open(f"{DataTable_out}", 'w', newline='') as out:
-            writer = csv.writer(out, delimiter='\t')
-            writer.writerow(new_header)
-            for i, row in enumerate(rows):
-                bp = bam_path_strings[i] if i < len(bam_path_strings) else "[]" # this is bad but oh well.
-                writer.writerow(row + [bp])
+        DataTable_out_json = f"{vals['experiment_id'][1]}__DataTable.json"
+        with open(DataTable_out_json, "w") as outf:
+            json.dump(rows, outf, indent=2)
         EOF
     >>>
 
     output {
-        Array[String] flow_cell_id = read_lines("flow_cell_id.txt")
-        Array[String] position_id = read_lines("position_id.txt")
-        Array[String] experiment_id = read_lines("experiment_id.txt")
-        Array[String] flow_cell_product_code = read_lines("flow_cell_product_code.txt")
-        Array[String] kit = read_lines("kit.txt")
-        Array[String] barcode = read_lines("barcode.txt")
-        Array[String] sample_id = read_lines("alias.txt")
-        Array[String] bam_paths = read_lines("bam_paths.txt")
         File samplesheet_with_bams = glob("*__DataTable.tsv")[0]
+        File samplesheet_with_bams_json = glob("*__DataTable.json")[0]
     }
     #########################
     RuntimeAttr default_attr = object {
-        cpu_cores:          1,
-        mem_gb:             4,
-        disk_gb:            4,
+        cpu_cores:          num_cpu,
+        mem_gb:             mem_gb,
+        disk_gb:            disk_size,
         boot_disk_gb:       10,
-        preemptible_tries:  2,
+        preemptible_tries:  0,
         max_retries:        1,
         docker:             "python:3.9-slim"
     }

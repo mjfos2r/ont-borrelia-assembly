@@ -4,33 +4,6 @@ version 1.0
 
 import "../../structs/Structs.wdl"
 
-workflow ValidateAndDecompressSeqRun {
-    meta {
-        description: "This is a workflow to validate and decompress a sequencing run."
-    }
-
-    parameter_meta {
-        run_tarball: "description of input"
-        md5sum: "file containing the md5sum for the tarball"
-    }
-
-    input {
-        File run_tarball
-        File md5sum
-    }
-
-    call ValidateMd5sum { input: file = run_tarball, checksum = md5sum }
-
-    if (read_boolean(ValidateMd5sum.is_valid)) { call DecompressRunTarball { input: tarball = run_tarball } }
-
-    output {
-        # Instead of maps, output parallel arrays
-        Array[String]? barcodes = DecompressRunTarball.barcodes
-        Array[File]? bam_lists = DecompressRunTarball.bam_lists
-        Array[Int]? bam_counts = DecompressRunTarball.bam_counts
-    }
-}
-
 task CompressTarPigz {
     meta {
         description: "compress files into a tarball using parallel gzip and generate an md5 checksum"
@@ -210,8 +183,8 @@ task DecompressRunTarball {
         File tarball
 
         # Runtime parameters
-        Int num_cpus = 4
-        Int mem_gb = 8
+        Int num_cpus = 16
+        Int mem_gb = 64
         RuntimeAttr? runtime_attr_override
     }
 
@@ -220,10 +193,15 @@ task DecompressRunTarball {
     command <<<
         set -euxo pipefail
 
-        mkdir -p extracted
+        NPROC=$(awk '/^processor/{print}' /proc/cpuinfo | wc -l)
 
+        mkdir -p extracted
+        mkdir -p merged
+
+        # crack the tarball, strip the top bam_pass component so we're left with barcode dirs.
         tar --use-compress-program=pigz -xf ~{tarball} -C extracted --strip-components=1
-        # Get a list of our directories, pull the barcode ID, and make a list of files for each
+
+        # Get a list of our directories, pull the barcode ID, all so we can make a list of files for each
         find extracted -mindepth 1 -maxdepth 1 -type d | sort > directory_list.txt
         cut -d'/' -f2 directory_list.txt > barcodes.txt
         mkdir -p file_lists
@@ -231,51 +209,39 @@ task DecompressRunTarball {
         # Create/clear the counts file before the loop
         true > bam_counts.txt
 
-        while read -r dir_path; do
-            BARCODE=$(basename "$dir_path")
-            find "$dir_path" -name "*.bam" | sort > "file_lists/${BARCODE}_bams.txt"
-            # Count the files and append to the counts file
-            wc -l < "file_lists/${BARCODE}_bams.txt" >> bam_counts.txt
+        # and you know what, we're gonna just merge our bams within this task. it's gonna take forever anyway and
+        # this simplifies things greatly.
+
+        while read -r DIR_PATH; do
+            BARCODE=$(basename "$DIR_PATH")
+            BAM_LIST="file_lists/${BARCODE}_bams.txt"
+
+            find "$DIR_PATH" -name "*.bam" | sort > "file_lists/${BARCODE}_bams.txt"
+            wc -l < "$BAM_LIST" >> bam_counts.txt
+
+            # merge em
+            samtools merge -f -@ "$NPROC" -f -o "${BARCODE}.merged.bam" -b "$BAM_LIST"
         done < directory_list.txt
 
         # Count the number of directories for verification
         wc -l directory_list.txt | awk '{print $1}' > directory_count.txt
-
-        # Use python to dump a JSON so we can immediately parse it into a damn map.
-        python3 - <<EOF
-        import os
-        import json
-
-        bc_to_bams = {}
-        with open('barcodes.txt', 'r') as f:
-            barcodes = [ line.strip() for line in f ]
-
-        for barcode in barcodes:
-            with open(f'file_lists/{barcode}_bams.txt', 'r') as f:
-                bc_to_bams[barcode] = [line.strip() for line in f]
-
-        # Write to JSON file
-        with open('raw_barcode_bam_paths.json', 'w') as f:
-            json.dump(list(bc_to_bams.values()), f, indent=4)
-
-        # Optional print for debug
-        print(json.dumps(list(bc_to_bams.values()), indent=4))
-
-        EOF
         >>>
 
     output {
+        # how many barcodes we working with?
         Int directory_count = read_int("directory_count.txt")
+        # how many bams we got?
         Array[Int] bam_counts = read_lines("bam_counts.txt")
-        Array[String] barcode_dirs = read_lines("directory_list.txt")
-        Array[String] barcodes = read_lines("barcodes.txt")
-        Array[File] bam_lists = glob("file_lists/*_bams.txt")
-        File bam_paths_json = "raw_barcode_bam_paths.json"
-        Array[Array[File]] raw_bam_paths = read_json("raw_barcode_bam_paths.json")
+        # output an array of our barcode_ids
+        Array[String] barcode = read_lines("barcodes.txt")
+
+        # output an array of our merged bam_files.
+        Array[File] merged_bam = glob("merged/*.bam")
     }
 
     #########################
     # DO NOT PREEMPT THIS JOB FOR THE LOVE OF ALL THAT IS GOOD IN THIS WORLD.
+    # Also use SSD please and thank you.
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
         mem_gb:             mem_gb,
@@ -283,7 +249,7 @@ task DecompressRunTarball {
         boot_disk_gb:       10,
         preemptible_tries:  0,
         max_retries:        1,
-        docker:             "mjfos2r/basic-python:3.11-slim"
+        docker:             "mjfos2r/samtools:latest"
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
     runtime {
@@ -323,5 +289,68 @@ task CreateMap {
 
     runtime {
         docker: "python:3.11-slim"
+    }
+}
+
+task RenameFile {
+    meta {
+        description: "Decompress a validated run tarball using pigz"
+    }
+
+    parameter_meta {
+        file: "file to rename"
+        new_name: "new filename"
+    }
+
+    input {
+        File file
+        String new_name
+
+        # Runtime parameters
+        Int num_cpus = 2
+        Int mem_gb = 8
+
+        RuntimeAttr? runtime_attr_override
+    }
+
+    Int disk_size = 50 + 2*ceil(size(file))
+
+    command <<<
+        set -euxo pipefail
+
+        mkdir -p renamed
+
+        NEWNAME="~{new_name}"
+        FILE="~{file}"
+        EXT="${FILE##*.}"
+
+        mv "$FILE" renamed/"${NEWNAME}.${EXT}"
+        >>>
+
+    output {
+        File renamed_file = glob("renamed/*")[0]
+    }
+
+    #########################
+    # DO NOT PREEMPT THIS JOB FOR THE LOVE OF ALL THAT IS GOOD IN THIS WORLD.
+    # Also use SSD please and thank you.
+    RuntimeAttr default_attr = object {
+        cpu_cores:          num_cpus,
+        mem_gb:             mem_gb,
+        disk_gb:            disk_size,
+        boot_disk_gb:       10,
+        preemptible_tries:  0,
+        max_retries:        1,
+        docker:             "mjfos2r/basic:latest"
+    }
+    RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
+    runtime {
+        cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
+        memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
+        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " SSD"
+        bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
+        preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
+        maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
+        docker:                 select_first([runtime_attr.docker,            default_attr.docker])
     }
 }

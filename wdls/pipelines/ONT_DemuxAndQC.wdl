@@ -60,20 +60,13 @@ workflow ONT_DemuxAndQC {
     call SSUtils.ParseSamplesheetToDataTable {
         input:
             samplesheet = samplesheet,
-            raw_bam_paths = DecompressRunTarball.raw_bam_paths
+            merged_bams = DecompressRunTarball.merged_bam
     }
 
     output {
         # Metadata parsed from samplesheet
-        Array[String] flow_cell_id = ParseSamplesheetToDataTable.flow_cell_id
-        Array[String] position_id = ParseSamplesheetToDataTable.position_id
-        Array[String] experiment_id = ParseSamplesheetToDataTable.experiment_id
-        Array[String] flow_cell_product_code = ParseSamplesheetToDataTable.flow_cell_product_code
-        Array[String] kit = ParseSamplesheetToDataTable.kit
-        Array[String] barcode = ParseSamplesheetToDataTable.barcode
-        Array[String] sample_id = ParseSamplesheetToDataTable.sample_id
-        Array[String] bam_paths = ParseSamplesheetToDataTable.bam_paths
         File samplesheet_with_bams = ParseSamplesheetToDataTable.samplesheet_with_bams
+        File samplesheet_with_bams_json = ParseSamplesheetToDataTable.samplesheet_with_bams_json
 
         # Validation output
         File run_validation_file = run_bams_validation.is_valid
@@ -82,12 +75,11 @@ workflow ONT_DemuxAndQC {
         # decompressed outputs from DecompressRunTarball if md5 is valid.
         Int directory_count = DecompressRunTarball.directory_count
         Array[Int] bam_counts = DecompressRunTarball.bam_counts
-        Array[String] barcode_dirs = DecompressRunTarball.barcode_dirs
-        Array[File] bam_lists = DecompressRunTarball.bam_lists
-        Array[Array[File]] raw_bam_paths = DecompressRunTarball.raw_bam_paths
-        File bam_paths_json = DecompressRunTarball.bam_paths_json
+        Array[String] barcode = DecompressRunTarball.barcode
+        Array[File] merged_bam = DecompressRunTarball.merged_bam
 
         Array[Pair[String, Boolean]] summary_file_integrity = summary_integrity
+
         # NanoPlot outputs
         File nanoplot_map = NanoPlotFromSummary.map
         File  nanoplot_tarball = NanoPlotFromSummary.tarball
