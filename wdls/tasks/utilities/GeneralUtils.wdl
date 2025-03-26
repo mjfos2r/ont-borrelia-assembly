@@ -208,7 +208,7 @@ task DecompressRunTarball {
         true > gcs_merged_bam_paths.txt
 
         # crack the tarball, strip the top bam_pass component so we're left with barcode dirs.
-        tar --use-compress-program=pigz -xf ~{tarball} -C extracted --strip-components=1
+        tar --use-compress-program=pigz -xvf ~{tarball} -C extracted --strip-components=1
 
         # Get a list of our directories, pull the barcode ID, all so we can make a list of files for each
         find extracted -mindepth 1 -maxdepth 1 -type d | sort > directory_list.txt
