@@ -115,7 +115,7 @@ task ParseSamplesheetToDataTable {
         barcode_to_bam = {}
         with open("~{file_paths}", 'r') as f:
             for line in f:
-                path = line.strip()
+                path = line.strip().replace('"', '') # sanitize any potential quote issues.
                 print(f"Input Path From Cromwell: {path}")
                 filename = os.path.basename(path)
                 barcode = filename.split(".")[0] # barcode01.merged.bam
@@ -131,11 +131,15 @@ task ParseSamplesheetToDataTable {
                 barcode = row["barcode"]
                 row["merged_bam"] = barcode_to_bam.get(barcode, "")
                 rows.append(row)
+                print(f"experiment_id: {experiment_id}")
+                print(f"barcode: {barcode}")
+                print(f"merged_bam: {row["merged_bam"]}\n")
 
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
         with open(DataTable_out_tsv, 'w') as outf:
             fieldnames = rows[0].keys()
+            print(f"Fieldnames: {fieldnames}")
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
@@ -144,7 +148,6 @@ task ParseSamplesheetToDataTable {
         print(DataTable_out_json)
         with open(DataTable_out_json, "w") as outf:
             json.dump(rows, outf, indent=2)
-
         EOF
     >>>
 
