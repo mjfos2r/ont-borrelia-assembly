@@ -135,7 +135,7 @@ task ParseSamplesheetToDataTable {
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
         with open(DataTable_out_tsv, 'w') as outf:
-            fieldnames = row[0].keys()
+            fieldnames = rows[0].keys()
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
