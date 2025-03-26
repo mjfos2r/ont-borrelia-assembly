@@ -132,7 +132,7 @@ task ParseSamplesheetToDataTable {
                 experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
                 merged_bam = barcode_to_bam.get(barcode, "")
-                row['Bb_Sample_ID'] = row.pop('sample_id')
+                row['Bb_sample_id'] = row.pop('sample_id')
                 row["merged_bam"] = merged_bam
                 rows.append(row)
                 print(f"experiment_id: {experiment_id}")
