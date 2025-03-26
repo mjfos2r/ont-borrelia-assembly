@@ -126,12 +126,13 @@ task ParseSamplesheetToDataTable {
         experiment_id = ""
         rows = []
         # Read in our samplesheet CSV
-        with open("~{samplesheet}", 'r', newline='') as infile:
+        with open("~{samplesheet}", 'r', newline='', encoding='utf-8-sig') as infile:
             reader = csv.DictReader(infile, delimiter=',')
             for row in reader:
                 experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
                 merged_bam = barcode_to_bam.get(barcode, "")
+                row['Bb_Sample_ID'] = row.pop('sample_id')
                 row["merged_bam"] = merged_bam
                 rows.append(row)
                 print(f"experiment_id: {experiment_id}")
@@ -141,7 +142,8 @@ task ParseSamplesheetToDataTable {
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
         with open(DataTable_out_tsv, 'w') as outf:
-            fieldnames = rows[0].keys()
+            fieldnames = [ 'Bb_sample_id', 'barcode', 'experiment_id', 'flow_cell_id', 'position_id', 'flow_cell_product_code', 'kit', 'merged_bam']
+            #fieldnames = rows[0].keys()
             print(f"Fieldnames: {fieldnames}")
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
             writer.writeheader()
