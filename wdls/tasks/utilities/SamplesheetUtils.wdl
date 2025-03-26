@@ -103,6 +103,8 @@ task ParseSamplesheetToDataTable {
     command <<<
         set -euxo pipefail
 
+        cat "~{file_paths}" > gcs_paths.txt
+
         python3 <<EOF
         import os
         import csv
@@ -113,9 +115,9 @@ task ParseSamplesheetToDataTable {
         # if this actually outputs delocalized paths I'll be so surprised.
         # let's try it anyway!
         barcode_to_bam = {}
-        with open("~{file_paths}", 'r') as f:
+        with open("gcs_paths.txt", 'r') as f:
             for line in f:
-                path = line.strip().replace('"', '') # sanitize any potential quote issues.
+                path = line.strip()#.replace('"', '') # sanitize any potential quote issues.
                 print(f"Input Path From Cromwell: {path}")
                 filename = os.path.basename(path)
                 barcode = filename.split(".")[0] # barcode01.merged.bam
