@@ -125,7 +125,7 @@ task ParseSamplesheetToDataTable {
         rows = []
         # Read in our samplesheet CSV
         with open("~{samplesheet}", 'r', newline='') as infile:
-            reader = list(csv.DictReader(infile, delimiter=','))
+            reader = csv.DictReader(infile, delimiter=',')
             for row in reader:
                 experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
@@ -133,15 +133,15 @@ task ParseSamplesheetToDataTable {
                 rows.append(row)
 
         DataTable_out_tsv = "DataTable.tsv"
-        print(f"{DataTable_out_tsv}")
+        print(DataTable_out_tsv)
         with open(DataTable_out_tsv, 'w') as outf:
-            fieldnames = list(row[0].keys())
+            fieldnames = row[0].keys()
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
 
         DataTable_out_json = "DataTable.json"
-        print(f"{DataTable_out_json}")
+        print(DataTable_out_json)
         with open(DataTable_out_json, "w") as outf:
             json.dump(rows, outf, indent=2)
 
