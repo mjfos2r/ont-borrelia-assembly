@@ -129,11 +129,12 @@ task ParseSamplesheetToDataTable {
             for row in reader:
                 experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
-                row["merged_bam"] = barcode_to_bam.get(barcode, "")
+                merged_bam = barcode_to_bam.get(barcode, "")
+                row["merged_bam"] = merged_bam
                 rows.append(row)
                 print(f"experiment_id: {experiment_id}")
                 print(f"barcode: {barcode}")
-                print(f"merged_bam: {row["merged_bam"]}\n")
+                print(f"merged_bam: {}\n")
 
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
