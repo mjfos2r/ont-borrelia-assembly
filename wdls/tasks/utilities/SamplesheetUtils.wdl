@@ -132,14 +132,16 @@ task ParseSamplesheetToDataTable {
                 row["merged_bam"] = barcode_to_bam.get(barcode, "")
                 rows.append(row)
 
-        DataTable_out_tsv = f"{experiment_id}__DataTable.tsv"
+        DataTable_out_tsv = "DataTable.tsv"
+        print(f"{DataTable_out_tsv}")
         with open(DataTable_out_tsv, 'w') as outf:
             fieldnames = list(row[0].keys())
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
 
-        DataTable_out_json = f"{experiment_id}__DataTable.json"
+        DataTable_out_json = "DataTable.json"
+        print(f"{DataTable_out_json}")
         with open(DataTable_out_json, "w") as outf:
             json.dump(rows, outf, indent=2)
 
@@ -147,8 +149,8 @@ task ParseSamplesheetToDataTable {
     >>>
 
     output {
-        File samplesheet_with_bams = glob("*__DataTable.tsv")[0]
-        File samplesheet_with_bams_json = glob("*__DataTable.json")[0]
+        File samplesheet_with_bams = "DataTable.tsv"
+        File samplesheet_with_bams_json = "DataTable.json"
     }
     #########################
     RuntimeAttr default_attr = object {
