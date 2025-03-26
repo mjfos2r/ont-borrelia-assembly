@@ -136,7 +136,7 @@ task ParseSamplesheetToDataTable {
                 rows.append(row)
                 print(f"experiment_id: {experiment_id}")
                 print(f"barcode: {barcode}")
-                print(f"merged_bam: {}\n")
+                print(f"merged_bam: {merged_bam}\n")
 
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
