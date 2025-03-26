@@ -103,7 +103,7 @@ task ParseSamplesheetToDataTable {
     command <<<
         set -euxo pipefail
 
-        python3 - <<EOF
+        python3 <<EOF
         import os
         import csv
         import json
