@@ -203,7 +203,7 @@ task DecompressRunTarball {
         echo "# RUN TARBALL IS VALID: ~{is_valid} #"
         echo "#####################################"
         # handy snippet from community post: 360073540652-Cromwell-execution-directory
-        gcs_task_call_basepath=$(cat gcs_delocalization.sh | grep -o '"gs:\/\/.*/glob-.*/' | sed 's#/$##' | head -n 1)
+        gcs_task_call_basepath=$(cat gcs_delocalization.sh | grep -o '"gs:\/\/.*/glob-.*/' | sed 's#/$#"#' | head -n 1)
         echo "$gcs_task_call_basepath"
         true > gcs_merged_bam_paths.txt
 
