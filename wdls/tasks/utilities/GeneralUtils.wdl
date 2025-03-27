@@ -323,7 +323,7 @@ task RenameFile {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 50 + 3*ceil(size(file))
+    Int disk_size = 50 + 2*ceil(size(file))
 
     command <<<
         set -euxo pipefail
@@ -333,8 +333,10 @@ task RenameFile {
         NEWNAME="~{new_name}"
         FILE="~{file}"
         EXT="${FILE##*.}"
-
-        mv "$FILE" renamed/"${NEWNAME}.${EXT}"
+        echo "Original Filename: ${FILE}"
+        echo "Extension: ${EXT}"
+        echo "New Filename: renamed/${NEWNAME}.${EXT}"
+        mv "$FILE" "renamed/${NEWNAME}.${EXT}"
         >>>
 
     output {
@@ -348,7 +350,7 @@ task RenameFile {
         cpu_cores:          num_cpus,
         mem_gb:             mem_gb,
         disk_gb:            disk_size,
-        boot_disk_gb:       10,
+        boot_disk_gb:       15,
         preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/basic:latest"
