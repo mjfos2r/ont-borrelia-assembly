@@ -39,27 +39,14 @@ task Chopper {
             ~{if compress_output then "gzip" else "cat"} > "~{output_filename}"
         fi
 
-        # Calculate read stats before and after filtering
-        if [ "~{is_input_gzipped}" == "true" ]; then
-            echo "Input reads: $(gunzip -c ~{input_reads} | grep -c "^@")" > stats.txt
-        else
-            echo "Input reads: $(grep -c "^@" ~{input_reads})" > stats.txt
-        fi
-
-        if [ "~{compress_output}" == "true" ]; then
-            echo "Output reads: $(gunzip -c ~{output_filename} | grep -c "^@")" >> stats.txt
-        else
-            echo "Output reads: $(grep -c "^@" ~{output_filename})" >> stats.txt
-        fi
-
-        # Convert to map format
-        sed 's/: /\t/' stats.txt > stats_map.txt
+        # Calculate read stats before
+        seqkit stats ~{input_reads} -b -a -T > stats.txt
+        seqkit stats ~{output_filename} -b -a -T | tail -n +2 >> stats.txt
     >>>
 
     output {
         File clean_fq = "~{output_filename}"
         File stats = "stats.tsv"
-        Map[String, Int] stats_map = read_map("stats_map.tsv")
     }
     # Do not preempt.
     #########################

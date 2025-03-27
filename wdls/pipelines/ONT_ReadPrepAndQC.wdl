@@ -45,6 +45,9 @@ workflow ONT_ReadPrepAndQC {
     output {
         File renamed_bam = RenameFile.renamed_file
         File cleaned_reads = Chopper.clean_fq
+        File clean_fq
+        File stats
+        Map[String, Int] stats_map
         File telomere_bed = ResolveTelomeres.telomere_bed
         File telomere_read_ids = ResolveTelomeres.telomere_read_ids
         File raw_telomere_reads = ResolveTelomeres.telomere_fastq
