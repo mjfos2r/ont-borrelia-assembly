@@ -58,8 +58,8 @@ task Chopper {
 
     output {
         File clean_fq = "~{output_filename}"
-        File stats = "chopper_stats.tsv"
-        Map[String, Int] stats_map = read_map("chopper_stats.tsv")
+        File stats = "stats.tsv"
+        Map[String, Int] stats_map = read_map("stats_map.tsv")
     }
     # Do not preempt.
     #########################
