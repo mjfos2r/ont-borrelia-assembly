@@ -189,7 +189,7 @@ task DecompressRunTarball {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 50 + ceil(size(tarball, "GB") * 3)
+    Int disk_size = 50 + 3*ceil(size(tarball, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -323,7 +323,7 @@ task RenameFile {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 50 + 2*ceil(size(file))
+    Int disk_size = 50 + 3*ceil(size(file))
 
     command <<<
         set -euxo pipefail

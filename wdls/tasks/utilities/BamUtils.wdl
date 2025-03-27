@@ -22,7 +22,7 @@ task MergeBams {
 
     String output_bam ="~{name}.bam"
 
-    Int disk_size = 10 + ceil(size(input_bams, "GB"))
+    Int disk_size = 50 + 2*ceil(size(input_bams, "GB"))
 
     command <<<
     set -euxo pipefail # if anything breaks crash out
@@ -79,7 +79,7 @@ task MergeBams {
     runtime {
         cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
         memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
-        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " HDD"
+        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " SSD"
         bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
         preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
         maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])
@@ -99,11 +99,12 @@ task Bam2Fastq {
     input {
         File input_bam
 
-        Int num_cpus = 4
-        Int disk_size = 10
+        Int num_cpus = 8
+        Int mem_gb = 16
         RuntimeAttr? runtime_attr_override
     }
     String filename = basename(input_bam)
+    Int disk_size = 50 + 3*ceil(size(input_bam, "GB"))
 
     command <<<
     set -euxo pipefail # if anything breaks crash out
@@ -112,7 +113,7 @@ task Bam2Fastq {
     NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
 
     # preserve all tags that dorado puts in the BAM.
-    cat "~{input_bam}" | samtools fastq -@ "$NPROCS" -T '*' - | gzip -c > "~{filename}.fastq.gz"
+    samtools fastq -@ "$NPROCS" -T '*' -0 "~{filename}.fastq.gz" "~{input_bam}"
     >>>
 
     output {
@@ -123,7 +124,7 @@ task Bam2Fastq {
     # HOW TO SPECIFY GPU?
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
-        mem_gb:             8,
+        mem_gb:             mem_gb,
         disk_gb:            disk_size,
         boot_disk_gb:       10,
         preemptible_tries:  0,
@@ -134,7 +135,7 @@ task Bam2Fastq {
     runtime {
         cpu:                    select_first([runtime_attr.cpu_cores,         default_attr.cpu_cores])
         memory:                 select_first([runtime_attr.mem_gb,            default_attr.mem_gb]) + " GiB"
-        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " HDD"
+        disks: "local-disk " +  select_first([runtime_attr.disk_gb,           default_attr.disk_gb]) + " SSD"
         bootDiskSizeGb:         select_first([runtime_attr.boot_disk_gb,      default_attr.boot_disk_gb])
         preemptible:            select_first([runtime_attr.preemptible_tries, default_attr.preemptible_tries])
         maxRetries:             select_first([runtime_attr.max_retries,       default_attr.max_retries])

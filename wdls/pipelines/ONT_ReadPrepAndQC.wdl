@@ -24,11 +24,13 @@ workflow ONT_ReadPrepAndQC {
         File reference_fa
         File contam_fa
     }
+    # firstly, rename our merged_bam to the sample_id
     call UTILS.RenameFile { input: file = merged_bam, new_name = sample_id}
+    # make it a fastq
     call BAM.Bam2Fastq { input: input_bam = RenameFile.renamed_file }
-    # Get to the choppah and clean our reads!
+    # Get to the choppah (terminate the bad reads)
     call CHP.Chopper { input: input_reads = Bam2Fastq.fastq, contam_fa = contam_fa }
-    # process telomeric reads
+    # run my bespoke in-silico reverse-telomerase task
     call TELO.ResolveTelomeres { input: reads = Chopper.clean_fq, sample_id = sample_id }
 
     # now generate our QC for these reads.

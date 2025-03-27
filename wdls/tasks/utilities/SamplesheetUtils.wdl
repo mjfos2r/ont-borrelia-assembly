@@ -109,11 +109,6 @@ task ParseSamplesheetToDataTable {
         import os
         import csv
         import json
-
-        from collections import defaultdict
-
-        # if this actually outputs delocalized paths I'll be so surprised.
-        # let's try it anyway!
         barcode_to_bam = {}
         with open("gcs_paths.txt", 'r') as f:
             for line in f:
@@ -122,23 +117,24 @@ task ParseSamplesheetToDataTable {
                 filename = os.path.basename(path)
                 barcode = filename.split(".")[0] # barcode01.merged.bam
                 barcode_to_bam[barcode] = path
-
         experiment_id = ""
         rows = []
-        # Read in our samplesheet CSV
+        # Read in our samplesheet CSV (utf-8-sig since excel has to be quirky)
         with open("~{samplesheet}", 'r', newline='', encoding='utf-8-sig') as infile:
             reader = csv.DictReader(infile, delimiter=',')
             for row in reader:
+                # do this to check for bad samplesheet column naming.
+                if "Bb_sample_id" not in actual_columns:
+                    row['Bb_sample_id'] = row.pop('sample_id')
                 experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
                 merged_bam = barcode_to_bam.get(barcode, "")
-                row['Bb_sample_id'] = row.pop('sample_id')
                 row["merged_bam"] = merged_bam
                 rows.append(row)
                 print(f"experiment_id: {experiment_id}")
                 print(f"barcode: {barcode}")
                 print(f"merged_bam: {merged_bam}\n")
-
+                print(f"SampleSheet Columns: {}")
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
         with open(DataTable_out_tsv, 'w') as outf:
@@ -148,7 +144,6 @@ task ParseSamplesheetToDataTable {
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
-
         DataTable_out_json = "DataTable.json"
         print(DataTable_out_json)
         with open(DataTable_out_json, "w") as outf:

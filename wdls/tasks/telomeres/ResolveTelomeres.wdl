@@ -30,23 +30,23 @@ task ResolveTelomeres {
 
         # Step 1: Find telomere reads
         echo "Finding telomere reads..."
-        zcat "~{reads}" | seqkit locate -j "$NPROCS" -i -I -V 1000 -d -p "~{motif}" --bed > "~{sample_id}".telomere_reads.bed
+        zcat "~{reads}" | seqkit locate -j "$NPROCS" -i -I -V 1000 -d -p "~{motif}" --bed > "~{sample_id}.telomere_reads.bed"
 
         # Step 2: Extract read_ids for telomeric reads
         echo "Extracting read IDs..."
-        awk 'NR>1 {print $1}' "~{sample_id}".telomere_reads.bed > "~{sample_id}".telomere_read_ids.txt
+        awk 'NR>1 {print $1}' "~{sample_id}.telomere_reads.bed" > "~{sample_id}.telomere_read_ids.txt"
 
         # Step 3: Extract em by read_id
         echo "Extracting telomere reads..."
-        seqkit grep -f "~{sample_id}".telomere_read_ids.txt  > "~{sample_id}".raw_telomeres.fastq
+        seqkit grep -f "~{sample_id}.telomere_read_ids.txt" > "~{sample_id}.raw_telomeres.fastq"
 
         # Step 4: Clip em
         echo "Clipping telomere reads..."
-        python /opt/clip_telomere_reads.py "~{sample_id}".telomeres.bed "~{sample_id}".raw_telomeres.fastq "~{sample_id}".clipped_telomeres.fastq
+        python /opt/clip_telomere_reads.py "~{sample_id}.telomeres.bed" "~{sample_id}.raw_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq"
 
         # Step 5: Merge clipped telomere reads and remove the unclipped parents
         echo "Filtering out telomere reads..."
-        /opt/filterbyname.py "~{reads}" "~{sample_id}".clipped_telomeres.fastq "~{sample_id}.fixed.fastq"
+        /opt/filterbyname.py "~{reads}" "~{sample_id}.clipped_telomeres.fastq" "~{sample_id}.fixed.fastq"
 
         # step 6: gzip reads.
         cat "~{sample_id}.fixed.fastq" | gzip -9 > "~{sample_id}.fixed.fastq.gz"
@@ -68,7 +68,7 @@ task ResolveTelomeres {
         boot_disk_gb:       10,
         preemptible_tries:  0,
         max_retries:        1,
-        docker:             "us.gcr.io/terra-942df462/telomere-tools:latest"
+        docker:             "mjfos2r/telomere-tools:latest"
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
     runtime {
