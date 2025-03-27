@@ -9,13 +9,13 @@ task Chopper {
         Int min_quality = 10
         Int min_length = 500
         Boolean compress_output = true
-        String? extra_args
+        # NO EXTRA ARGS NO NO NO
+        # CHOPPER DOESNT LIKE EMPTY STRINGS AS ARGS.
 
         Int num_cpus = 4
         Int mem_gb = 8
         RuntimeAttr? runtime_attr_override
     }
-
     String basename = sub(basename(input_reads), "\\..*$", "")
     Boolean is_input_gzipped = sub(input_reads, ".*\\.", "") == "gz"
     String output_filename = basename + ".clean.fq" + (if compress_output then ".gz" else "")
@@ -31,11 +31,11 @@ task Chopper {
         if [ "~{is_input_gzipped}" == "true" ]; then
             # Input is gzipped
             gunzip -c "~{input_reads}" | \
-            chopper --contam "~{contam_fa}" -q "~{min_quality}" -l "~{min_length}" "~{extra_args}" --threads "$NPROCS" | \
+            chopper --contam "~{contam_fa}" -q "~{min_quality}" -l "~{min_length}" --threads "$NPROCS" | \
             ~{if compress_output then "gzip" else "cat"} > "~{output_filename}"
         else
             # Input is not gzipped
-            chopper --contam "~{contam_fa}" -q "~{min_quality}" -l "~{min_length}" -i "~{input_reads}" "~{extra_args}" --threads "$NPROCS" | \
+            chopper --contam "~{contam_fa}" -q "~{min_quality}" -l "~{min_length}" -i "~{input_reads}" --threads "$NPROCS" | \
             ~{if compress_output then "gzip" else "cat"} > "~{output_filename}"
         fi
 
