@@ -40,8 +40,8 @@ task Chopper {
         fi
 
         # Calculate read stats before
-        seqkit stats ~{input_reads} -b -a -T > stats.txt
-        seqkit stats ~{output_filename} -b -a -T | tail -n +2 >> stats.txt
+        seqkit stats ~{input_reads} -b -a -T > "stats.tsv"
+        seqkit stats ~{output_filename} -b -a -T | tail -n +2 >> "stats.tsv"
     >>>
 
     output {
