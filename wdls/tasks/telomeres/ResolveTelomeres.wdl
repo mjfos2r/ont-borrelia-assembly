@@ -30,15 +30,15 @@ task ResolveTelomeres {
 
         # Step 1: Find telomere reads
         echo "Finding telomere reads..."
-        zcat "~{reads}" | seqkit locate -j "$NPROCS" -i -I -V 1000 -d -p "~{motif}" --bed > "~{sample_id}.telomere_reads.bed"
+        zcat "~{reads}" | seqkit locate -j "$NPROCS" -i -I -d -p "~{motif}" --bed > "~{sample_id}.telomere_reads.bed"
 
         # Step 2: Extract read_ids for telomeric reads
         echo "Extracting read IDs..."
         awk 'NR>1 {print $1}' "~{sample_id}.telomere_reads.bed" > "~{sample_id}.telomere_read_ids.txt"
 
-        # Step 3: Extract em by read_id
+        # Step 3: Extract reads by read_id
         echo "Extracting telomere reads..."
-        seqkit grep -f "~{sample_id}.telomere_read_ids.txt" > "~{sample_id}.raw_telomeres.fastq"
+        seqkit grep -f "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.raw_telomeres.fastq"
 
         # Step 4: Clip em
         echo "Clipping telomere reads..."
