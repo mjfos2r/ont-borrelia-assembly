@@ -66,7 +66,7 @@ task ParseSamplesheetToDataTable {
             reader = csv.DictReader(infile, delimiter=',')
             for row in reader:
                 # do this to check for bad samplesheet column naming.
-                if "Bb_sample_id" not in actual_columns:
+                if "Bb_sample_id" not in row.keys():
                     row['Bb_sample_id'] = row.pop('sample_id')
                 experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
@@ -76,7 +76,7 @@ task ParseSamplesheetToDataTable {
                 print(f"experiment_id: {experiment_id}")
                 print(f"barcode: {barcode}")
                 print(f"merged_bam: {merged_bam}\n")
-                print(f"SampleSheet Columns: {}")
+                print(f"SampleSheet Columns: {row.keys()}")
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
         with open(DataTable_out_tsv, 'w') as outf:
