@@ -43,17 +43,25 @@ workflow ONT_ReadPrepAndQC {
     }
 
     output {
+        # our bam renamed to our sample_id
         File renamed_bam = RenameFile.renamed_file
+        # chopper output
         File cleaned_reads = Chopper.clean_fq
         File stats = Chopper.stats
+        # telomere resolution outputs
         File telomere_bed = ResolveTelomeres.telomere_bed
         File telomere_read_ids = ResolveTelomeres.telomere_read_ids
         File raw_telomere_reads = ResolveTelomeres.telomere_fastq
         File clipped_telomere_reads = ResolveTelomeres.clipped_telomeres
         File fixed_reads = ResolveTelomeres.fixed_reads
+        # raw telos
         File cleaned_Reads2Ref = SingleReadsQC.raw_telo_bam
         Array[File] raw_telo_coverage_plots = SingleReadsQC.raw_telo_coverage_plots
+        File raw_telo_coverage_plots_targz = SingleReadsQC.raw_telo_coverage_plots_targz
+        # fixed telos
         File fixed_Reads2Ref = SingleReadsQC.fixed_telo_bam
         Array[File] fixed_telo_coverage_plots = SingleReadsQC.fixed_telo_coverage_plots
+        File fixed_telo_coverage_plots_targz = SingleReadsQC.fixed_telo_coverage_plots_targz
+
     }
 }

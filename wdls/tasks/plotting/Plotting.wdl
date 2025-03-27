@@ -11,7 +11,7 @@ task PlotBamCoverage {
         input_bam: "input alignment to plot coverage of"
     }
 
-    Int disk_size = 15 + ceil(size(input_bam, "GB"))
+    Int disk_size = 50 + ceil(size(input_bam, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -20,10 +20,12 @@ task PlotBamCoverage {
             --outpath "BamCovPlots" \
             --rolling_window 50 \
             --threshold 10 -s -c
+        tar -zcvf BamCovPlots.tar.gz BamCovPlots/
     >>>
 
     output {
         Array[File] plots = glob("BamCovPlots/*")
+        File plots_targz = "BamCovPlots.tar.gz"
     }
 
     #########################
