@@ -22,64 +22,6 @@ task CreateBarcodeMap {
     }
 }
 
-task RenameFile {
-    # This is broken and needs rewriting.
-    input {
-        File original_file
-        Map[String, String] barcode_map
-    }
-
-    # Extract the barcode from the filename
-    String filename = basename(original_file)
-
-    command <<<
-        set -e
-
-        # Get original filename
-        FILENAME="~{filename}"
-
-        # Loop through all possible barcodes in the map
-        # This approach handles the mapping in bash since WDL can't directly index maps with variables
-        FOUND=false
-        NEW_NAME=""
-
-        # Create a temporary file with the mapping via a cursed herefile.
-        cat <<EOF > temp_map.txt
-        ~{write_map(barcode_map)}
-        EOF
-
-        # For each barcode in our mapping
-        while IFS=$'\t' read -r barcode sample; do
-            # If the filename contains this barcode
-            if [[ "$FILENAME" == *"$barcode"* ]]; then
-                # Replace barcode with sample name
-                NEW_NAME="${FILENAME/$barcode/$sample}"
-                FOUND=true
-                break
-            fi
-        done < temp_map.txt
-
-        # If no match found, keep original name
-        if [ "$FOUND" = false ]; then
-            NEW_NAME="$FILENAME"
-            echo "Warning: No matching barcode found for $FILENAME"
-        fi
-
-        # Copy the file with the new name
-        cp "~{original_file}" "$NEW_NAME"
-    >>>
-
-    output {
-        File renamed_file = glob("*")[0]  # This assumes only one output file
-    }
-
-    runtime {
-        docker: "MY_BASE_DOCKER_IMAGE"
-        disks: "local-disk 10 HDD"
-    }
-}
-
-
 task ParseSamplesheetToDataTable {
     meta {
         description: "Parse the samplesheet and extract per-column arrays, also create a full TSV with an added raw_bams column for easy use as a Cromwell DataTable."

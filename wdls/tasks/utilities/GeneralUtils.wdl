@@ -323,7 +323,7 @@ task RenameFile {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 50 + 2*ceil(size(file))
+    Int disk_size = 50 + 2*ceil(size(file, "GB"))
 
     command <<<
         set -euxo pipefail
