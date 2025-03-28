@@ -56,7 +56,7 @@ workflow AssembleCanu {
     }
     call MM2.Minimap2 as Reads2Asm {
         input:
-            reads_file = fixed_reads,
+            reads_file = renamed_bam,
             ref_fasta = reference_fa,
             prefix = sample_id
     }
