@@ -30,11 +30,11 @@ task ResolveTelomeres {
 
         # Step 1: Find telomere reads
         echo "Finding telomere reads..."
-        zcat "~{reads}" | seqkit locate -j "$NPROCS" -i -d -p "~{motif}" --bed > "~{sample_id}.telomere_reads.bed"
+        zcat "~{reads}" | seqkit locate -j "$NPROCS" -i -d -p "~{motif}" --bed > "~{sample_id}.telomeres.bed"
 
         # Step 2: Extract read_ids for telomeric reads
         echo "Extracting read IDs..."
-        awk 'NR>1 {print $1}' "~{sample_id}.telomere_reads.bed" > "~{sample_id}.telomere_read_ids.txt"
+        awk 'NR>1 {print $1}' "~{sample_id}.telomeres.bed" > "~{sample_id}.telomere_read_ids.txt"
 
         # Step 3: Extract reads by read_id and also extract non-telo reads by inverted seqkit grep
         echo "Extracting telomere reads..."
