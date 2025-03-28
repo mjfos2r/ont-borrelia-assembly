@@ -43,7 +43,7 @@ task ResolveTelomeres {
 
         # Step 4: Clip em
         echo "Clipping telomere reads..."
-        python /opt/clip_telomere_reads.py "~{sample_id}.telomeres.bed" "~{sample_id}.raw_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq"
+        python /opt/clip_telomeric_reads.py "~{sample_id}.telomeres.bed" "~{sample_id}.raw_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq"
 
         # Step 5: Merge clipped telomere reads and remove the unclipped parents
         echo "Filtering out telomere reads..."
