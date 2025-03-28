@@ -36,9 +36,10 @@ task ResolveTelomeres {
         echo "Extracting read IDs..."
         awk 'NR>1 {print $1}' "~{sample_id}.telomere_reads.bed" > "~{sample_id}.telomere_read_ids.txt"
 
-        # Step 3: Extract reads by read_id
+        # Step 3: Extract reads by read_id and also extract non-telo reads by inverted seqkit grep
         echo "Extracting telomere reads..."
-        seqkit grep -f "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.raw_telomeres.fastq"
+        seqkit grep -f -I "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.raw_telomeres.fastq"
+        seqkit grep -f -I -v "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.no_telomeres.fastq"
 
         # Step 4: Clip em
         echo "Clipping telomere reads..."
@@ -46,7 +47,7 @@ task ResolveTelomeres {
 
         # Step 5: Merge clipped telomere reads and remove the unclipped parents
         echo "Filtering out telomere reads..."
-        /opt/filterbyname.py "~{reads}" "~{sample_id}.clipped_telomeres.fastq" "~{sample_id}.fixed.fastq"
+        /opt/merge_reads.py "~{sample_id}.no_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq" "~{sample_id}.fixed.fastq"
 
         # step 6: gzip reads.
         cat "~{sample_id}.fixed.fastq" | gzip -9 > "~{sample_id}.fixed.fastq.gz"
