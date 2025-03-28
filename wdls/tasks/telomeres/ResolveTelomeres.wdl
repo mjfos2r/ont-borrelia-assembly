@@ -54,7 +54,7 @@ task ResolveTelomeres {
     >>>
 
     output {
-        File telomere_bed = "~{sample_id}.telomere_reads.bed"
+        File telomere_bed = "~{sample_id}.telomeres.bed"
         File telomere_read_ids = "~{sample_id}.telomere_read_ids.txt"
         File telomere_fastq = "~{sample_id}.raw_telomeres.fastq"
         File clipped_telomeres = "~{sample_id}.clipped_telomeres.fastq"
