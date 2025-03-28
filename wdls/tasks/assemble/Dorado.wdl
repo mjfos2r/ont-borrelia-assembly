@@ -30,6 +30,7 @@ workflow Dorado {
     call Polish {
         input:
             alignment = Align.bam,
+            index = Align.bai,
             draft_asm = draft_asm,
             sample_id = sample_id
     }
@@ -155,7 +156,7 @@ task Polish {
         gpuType:                "nvidia-tesla-v100" # let's make sure this all works before we go spinning up this big money GPU...
         gpuCount:               1
         nvidiaDriverVersion:    "450.80.02"
-        zones:                  ["us-east1-c"]
+        zones:                  ["us-central1-a"]
         cpuPlatform:            "Intel Haswell"
         docker:                 select_first([runtime_attr.docker, default_attr.docker])
     }

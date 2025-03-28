@@ -19,7 +19,7 @@ workflow Canu {
     input {
         File reads
 
-        Int genome_size
+        Float genome_size
         Float correct_error_rate
         Float trim_error_rate
         Float assemble_error_rate
@@ -60,7 +60,7 @@ workflow Canu {
 task Correct {
     input {
         File reads
-        Int genome_size
+        Float genome_size
         Float error_rate
         String prefix = "canu"
 
@@ -119,7 +119,7 @@ task Correct {
 task Trim {
     input {
         File corrected_reads
-        Int genome_size
+        Float genome_size
         Float error_rate
         String prefix = "canu"
 
@@ -176,7 +176,7 @@ task Trim {
 # performs assembly on corrected, then trimmmed reads
 task Assemble {
     input {
-        Int genome_size
+        Float genome_size
         File trimmed_reads
         Float error_rate
         String prefix = "canu"

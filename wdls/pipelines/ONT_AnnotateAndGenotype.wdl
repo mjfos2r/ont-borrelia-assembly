@@ -29,20 +29,14 @@ workflow AssembleCanu {
         File fixed_reads
         File polished_contigs
         File bakta_db
-        File fixed_telo_bam
+        File fixed_Reads2Ref_bam
         File reference_fa
         File reference_gff
 
     }
-    call MM2.Minimap2 {
-        input:
-            reads_file = fixed_fastq,
-            ref_fasta = polished_contigs,
-            prefix = sample_id
-    }
     call PC.CallPlasmids {
         input:
-            contigs = Dorado.polished
+            contigs = polished_contigs
     }
     call BKT.bakta {
         input:
@@ -59,7 +53,7 @@ workflow AssembleCanu {
             reference_gff = reference_gff,
             fixed_reads = fixed_reads,
             Reads2AsmBam = Minimap2.bam
-            Reads2RefBam = fixed_telo_bam
+            Reads2RefBam = fixed_Reads2Ref_bam
     }
     output {
         # minimap2 output
