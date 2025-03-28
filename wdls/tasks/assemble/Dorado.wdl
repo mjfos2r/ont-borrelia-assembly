@@ -17,7 +17,6 @@ workflow Dorado {
         File reads
         File draft_asm
         String sample_id
-        RuntimeAttr? runtime_attr_override
     }
 
     call Align {
