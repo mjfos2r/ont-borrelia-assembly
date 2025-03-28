@@ -21,7 +21,7 @@ workflow AssembleCanu {
         bakta_db: "tar.gz containing the full bakta database"
         fixed_telo_bam: "Bam file for the aligned reads against the reference genoome (generated in ReadPrepAndQC workflow)"
         reference_fa: "Fasta for our reference genome to pass to Quast"
-        reference_gff "GFF3 for our reference genome to pass to Quast"
+        reference_gff: "GFF3 for our reference genome to pass to Quast"
     }
 
     input {
@@ -41,8 +41,8 @@ workflow AssembleCanu {
     call BKT.bakta {
         input:
             prefix = sample_id,
-            contigs = polished_contigs
-            rename_table = CallPlasmids.rename_table
+            contigs = polished_contigs,
+            rename_table = CallPlasmids.rename_table,
             bakta_db = bakta_db
     }
     call QUAST.Quast {
@@ -52,7 +52,7 @@ workflow AssembleCanu {
             reference_fa = reference_fa,
             reference_gff = reference_gff,
             fixed_reads = fixed_reads,
-            Reads2AsmBam = Minimap2.bam
+            Reads2AsmBam = Minimap2.bam,
             Reads2RefBam = fixed_Reads2Ref_bam
     }
     output {
