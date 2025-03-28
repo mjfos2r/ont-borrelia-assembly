@@ -38,8 +38,8 @@ task ResolveTelomeres {
 
         # Step 3: Extract reads by read_id and also extract non-telo reads by inverted seqkit grep
         echo "Extracting telomere reads..."
-        seqkit grep -f -I "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.raw_telomeres.fastq"
-        seqkit grep -f -I -v "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.no_telomeres.fastq"
+        seqkit grep -I -f "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.raw_telomeres.fastq"
+        seqkit grep -I -f -v "~{sample_id}.telomere_read_ids.txt" "~{reads}" > "~{sample_id}.no_telomeres.fastq"
 
         # Step 4: Clip em
         echo "Clipping telomere reads..."
