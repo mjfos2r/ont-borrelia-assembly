@@ -46,13 +46,13 @@ task Minimap2 {
         # origin.  Separating these commands requires more resources, but is more reliable overall.
 
         if [[ "$FILE" =~ \.fastq$ ]] || [[ "$FILE" =~ \.fq$ ]]; then
-            cat $FILE | minimap2 "$MAP_PARAMS" - > tmp.sam
+            cat $FILE | minimap2 $MAP_PARAMS - > tmp.sam
         elif [[ "$FILE" =~ \.fastq.gz$ ]] || [[ "$FILE" =~ \.fq.gz$ ]]; then
-            zcat $FILE | minimap2 "$MAP_PARAMS" - > tmp.sam
+            zcat $FILE | minimap2 $MAP_PARAMS - > tmp.sam
         elif [[ "$FILE" =~ \.fasta$ ]] || [[ "$FILE" =~ \.fa$ ]]; then
-            cat $FILE | python3 /usr/local/bin/cat_as_fastq.py | minimap2 "$MAP_PARAMS" - > tmp.sam
+            cat $FILE | python3 /usr/local/bin/cat_as_fastq.py | minimap2 $MAP_PARAMS - > tmp.sam
         elif [[ "$FILE" =~ \.fasta.gz$ ]] || [[ "$FILE" =~ \.fa.gz$ ]]; then
-            zcat $FILE | python3 /usr/local/bin/cat_as_fastq.py | minimap2 "$MAP_PARAMS" - > tmp.sam
+            zcat $FILE | python3 /usr/local/bin/cat_as_fastq.py | minimap2 $MAP_PARAMS - > tmp.sam
         elif [[ "$FILE" =~ \.bam$ ]]; then
             samtools fastq -T '*' "$FILE" | minimap2 "$MAP_PARAMS" - > tmp.sam # save all tags
         else
@@ -60,7 +60,7 @@ task Minimap2 {
             exit 1
         fi
 
-        samtools sort "$SORT_PARAMS" tmp.sam
+        samtools sort $SORT_PARAMS tmp.sam
 
         # Library entry modification removed since we're not fooling with RG
 
