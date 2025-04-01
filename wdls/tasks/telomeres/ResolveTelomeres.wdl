@@ -46,11 +46,8 @@ task ResolveTelomeres {
         python3 /opt/clip_telomere_reads.py "~{sample_id}.telomeres.bed" "~{sample_id}.raw_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq"
 
         # Step 5: Merge clipped telomere reads and remove the unclipped parents
-        echo "Filtering out telomere reads..."
-        python3 /opt/merge_reads.py "~{sample_id}.no_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq" "~{sample_id}.fixed.fastq"
-
-        # step 6: gzip reads.
-        cat "~{sample_id}.fixed.fastq" | gzip -9 > "~{sample_id}.fixed.fastq.gz"
+        echo "Merging clipped and filtered reads and gzipping it."
+        cat "~{sample_id}.no_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq" | gzip -9 > "~{sample_id}.fixed.fastq.gz"
     >>>
 
     output {
