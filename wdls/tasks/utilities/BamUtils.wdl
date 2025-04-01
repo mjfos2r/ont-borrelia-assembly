@@ -121,7 +121,6 @@ task Bam2Fastq {
     }
     # no preempt.
     #########################
-    # HOW TO SPECIFY GPU?
     RuntimeAttr default_attr = object {
         cpu_cores:          num_cpus,
         mem_gb:             mem_gb,

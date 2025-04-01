@@ -51,7 +51,7 @@ task Quast {
         boot_disk_gb:       25,
         preemptible_tries:  0,
         max_retries:        0,
-        docker:             "mjfos2r/Quast:latest" ##TODO: WRITE MY OWN CONTAINER
+        docker:             "mjfos2r/Quast:latest" ##TODO: WRITE MY OWN CONTAINER <- "done, just need to get things tested."
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
     runtime {

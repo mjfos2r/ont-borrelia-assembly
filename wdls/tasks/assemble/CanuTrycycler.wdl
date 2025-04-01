@@ -87,7 +87,7 @@ task CanuTrimContigs {
     >>>
 
     output {
-        File trimmed = output_file
+        File trimmed = output_file # feels broken?
     }
 
     #########################
@@ -98,7 +98,7 @@ task CanuTrimContigs {
         boot_disk_gb:       15,
         preemptible_tries:  0,
         max_retries:        0,
-        docker:             "mjfos2r/trycycler:latest" 
+        docker:             "mjfos2r/trycycler:latest"
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
     runtime {
