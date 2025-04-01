@@ -42,5 +42,7 @@ workflow AlignAndPlotCoverage {
         File aligned_bai = Minimap2.aligned_bai
         Array[File] coverage_plots = PlotBamCoverage.plots
         File plots_targz = PlotBamCoverage.plots_targz
+        File average_coverage_txt  = PlotBamCoverage.average_coverage_txt
+        Int average_coverage = PlotBamCoverage.average_coverage
     }
 }

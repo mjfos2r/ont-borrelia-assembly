@@ -54,14 +54,20 @@ workflow ONT_ReadPrepAndQC {
         File raw_telomere_reads = ResolveTelomeres.telomere_fastq
         File clipped_telomere_reads = ResolveTelomeres.clipped_telomeres
         File fixed_reads = ResolveTelomeres.fixed_reads
-        # raw telos
+        # Cleaned but unfixed telomeres.
         File cleaned_Reads2Ref = SingleReadsQC.raw_telo_bam
+        File cleaned_Reads2Ref_bai = SingleReadsQC.raw_telo_bai
         Array[File] raw_telo_coverage_plots = SingleReadsQC.raw_telo_coverage_plots
         File raw_telo_coverage_plots_targz = SingleReadsQC.raw_telo_coverage_plots_targz
-        # fixed telos
+        File raw_telo_ave_cov_txt = SingleReadsQC.raw_telo_ave_cov_txt
+        Int raw_telo_average_coverage = SingleReadsQC.raw_telo_average_coverage
+        # fixed telomeres
         File fixed_Reads2Ref = SingleReadsQC.fixed_telo_bam
+        File fixed_telo_bai = SingleReadsQC.fixed_telo_bai
         Array[File] fixed_telo_coverage_plots = SingleReadsQC.fixed_telo_coverage_plots
         File fixed_telo_coverage_plots_targz = SingleReadsQC.fixed_telo_coverage_plots_targz
+        File fixed_ave_cov_txt = SingleReadsQC.fixed_ave_cov_txt
+        Int fixed_average_coverage = SingleReadsQC.fixed_average_coverage
 
     }
 }
