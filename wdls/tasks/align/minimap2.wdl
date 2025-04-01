@@ -67,7 +67,7 @@ task Minimap2 {
         # Run calmd on the pre-processed BAM
         samtools calmd -b --no-PG "~{prefix}.pre.bam" "~{ref_fasta}" > "~{prefix}.bam"
         samtools index -@ "$NPROCS" "~{prefix}.bam"
-        rm ./*.pre.bam
+        rm *.pre.bam
     >>>
 
     output {
