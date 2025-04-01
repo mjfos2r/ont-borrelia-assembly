@@ -20,7 +20,7 @@ workflow AlignAndPlotCoverage {
         File reads
         File reference
         String prefix
-        String map_preset = '-x map-ont'
+        String map_preset = 'map-ont'
     }
 
     # align reads to reference using provided preset and output prefix.bam

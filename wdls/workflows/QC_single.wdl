@@ -23,7 +23,7 @@ workflow SingleReadsQC {
             reads = clean_fastq,
             reference = reference_fa,
             prefix = sample_id,
-            map_preset = '-x map-ont'
+            map_preset = 'map-ont'
     }
 
     call ALN.AlignAndPlotCoverage as fixed_reads_to_ref {
@@ -31,7 +31,7 @@ workflow SingleReadsQC {
             reads = fixed_fastq,
             reference = reference_fa,
             prefix = sample_id,
-            map_preset = '-x map-ont'
+            map_preset = 'map-ont'
     }
     output {
         # Alignment outputs - raw telomeres
