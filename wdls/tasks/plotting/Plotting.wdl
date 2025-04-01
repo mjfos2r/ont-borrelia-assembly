@@ -24,7 +24,7 @@ task PlotBamCoverage {
 
         # Get our total genome size and then get the average coverage across all positions.
         GSIZE=$(samtools view -H Minimap2.aligned_bam | grep -P '^@SQ' | cut -f 3 -d ':' | awk '{sum+=$1} END {print sum}')
-        samtools depth Minimap2.aligned_bam | awk -v gsize=$GSIZE '{sum+=$3} END { print sum/gsize}' > average_coverage.txt
+        samtools depth Minimap2.aligned_bam | awk -v gsize="$GSIZE" '{sum+=$3} END { print sum/gsize}' > average_coverage.txt
     >>>
 
     output {
