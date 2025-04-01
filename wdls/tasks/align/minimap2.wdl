@@ -84,7 +84,7 @@ task Minimap2 {
         boot_disk_gb:       25,
         preemptible_tries:  3,
         max_retries:        2,
-        docker:             "us.gcr.io/terra-942df462/align-tools:latest"
+        docker:             "mjfos2r/align-tools:latest"
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
     runtime {
