@@ -39,14 +39,14 @@ workflow SingleReadsQC {
         File raw_telo_bai = clean_reads_to_ref.aligned_bai
         Array[File] raw_telo_coverage_plots = clean_reads_to_ref.coverage_plots
         File raw_telo_coverage_plots_targz = clean_reads_to_ref.plots_targz
-        File raw_telo_ave_cov_txt = clean_reads_to_ref.average_coverage_txt
+        File raw_telo_average_coverage_txt = clean_reads_to_ref.average_coverage_txt
         Int raw_telo_average_coverage = clean_reads_to_ref.average_coverage
         # Alignment outputs - fixed telomeres
         File fixed_telo_bam = fixed_reads_to_ref.aligned_bam
         File fixed_telo_bai = fixed_reads_to_ref.aligned_bai
         Array[File] fixed_telo_coverage_plots = fixed_reads_to_ref.coverage_plots
         File fixed_telo_coverage_plots_targz = fixed_reads_to_ref.plots_targz
-        File fixed_ave_cov_txt = fixed_reads_to_ref.average_coverage_txt
+        File fixed_average_coverage_txt = fixed_reads_to_ref.average_coverage_txt
         Int fixed_average_coverage = fixed_reads_to_ref.average_coverage
     }
 }
