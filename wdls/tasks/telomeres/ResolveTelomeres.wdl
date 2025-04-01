@@ -21,7 +21,7 @@ task ResolveTelomeres {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 40 + 4*ceil(size(reads, "GB"))
+    Int disk_size = 50 + 6*ceil(size(reads, "GB"))
 
     command <<<
         set -euxo pipefail
