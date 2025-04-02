@@ -78,7 +78,7 @@ task CanuTrimContigs {
         prefix:   "Indicate prefix for output file naming."
     }
 
-    Int disk_size = 50 * ceil(size(contigs, "GB"))
+    Int disk_size = 50 + 2*ceil(size(contigs, "GB"))
     String output_file = if defined(subsample_id) then "assembly_~{subsample_id}.fasta"
                             else "~{prefix}.contigs.trimmed.fasta"
     command <<<
