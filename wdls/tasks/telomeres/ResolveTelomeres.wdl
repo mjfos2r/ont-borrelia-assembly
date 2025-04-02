@@ -22,12 +22,16 @@ task ResolveTelomeres {
     }
 
     Int disk_size = 50 + 8*ceil(size(reads, "GB"))
+    Int reads_size = ceil(size(reads, "GB"))
+    Int mem_gb = 3*reads_size
 
     command <<<
         set -euxo pipefail
 
         NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
-
+        echo "    NPROC: ${NPROCS}"
+        echo "File Size: ~{reads_size}"
+        echo "   Mem_gb: ~{mem_gb}"
         # Step 1: Find telomere reads
         echo "Finding telomere reads..."
         zcat "~{reads}" | seqkit locate -j "$NPROCS" -i -d -p "~{motif}" --bed > "~{sample_id}.telomeres.bed"
@@ -64,7 +68,7 @@ task ResolveTelomeres {
     #########################
     RuntimeAttr default_attr = object {
         cpu_cores:          4,
-        mem_gb:             16,
+        mem_gb:             mem_gb,
         disk_gb:            disk_size,
         boot_disk_gb:       50,
         preemptible_tries:  0,
