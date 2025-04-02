@@ -43,6 +43,9 @@ workflow AlignAndPlotCoverage {
         Array[File] coverage_plots = PlotBamCoverage.plots
         File plots_targz = PlotBamCoverage.plots_targz
         File average_coverage_txt  = PlotBamCoverage.average_coverage_txt
-        Int average_coverage = PlotBamCoverage.average_coverage
+        String average_coverage = PlotBamCoverage.average_coverage
+        File average_depth_txt  = PlotBamCoverage.average_depth_txt
+        String average_depth = PlotBamCoverage.average_depth
+
     }
 }

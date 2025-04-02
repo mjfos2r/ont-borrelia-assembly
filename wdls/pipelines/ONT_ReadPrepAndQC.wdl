@@ -59,15 +59,22 @@ workflow ONT_ReadPrepAndQC {
         File cleaned_Reads2Ref_bai = SingleReadsQC.raw_telo_bai
         Array[File] raw_telo_coverage_plots = SingleReadsQC.raw_telo_coverage_plots
         File raw_telo_coverage_plots_targz = SingleReadsQC.raw_telo_coverage_plots_targz
-        File raw_telo_average_coverage_txt = SingleReadsQC.raw_telo_average_coverage_txt
-        Int raw_telo_average_coverage = SingleReadsQC.raw_telo_average_coverage
+        File raw_telo_avg_depth_txt = SingleReadsQC.raw_telo_average_depth_txt
+        String raw_telo_avg_depth = SingleReadsQC.raw_telo_average_depth
+        File raw_telo_avg_cov_txt = SingleReadsQC.raw_telo_average_coverage_txt
+        String raw_telo_avg_cov = SingleReadsQC.raw_telo_average_coverage
+
         # fixed telomeres
         File fixed_Reads2Ref = SingleReadsQC.fixed_telo_bam
         File fixed_telo_bai = SingleReadsQC.fixed_telo_bai
         Array[File] fixed_telo_coverage_plots = SingleReadsQC.fixed_telo_coverage_plots
         File fixed_telo_coverage_plots_targz = SingleReadsQC.fixed_telo_coverage_plots_targz
-        File fixed_average_coverage_txt = SingleReadsQC.fixed_average_coverage_txt
-        Int fixed_average_coverage = SingleReadsQC.fixed_average_coverage
+
+        File fixed_telo_avg_depth_txt = SingleReadsQC.fixed_telo_average_depth_txt
+        String fixed_telo_avg_depth = SingleReadsQC.fixed_telo_average_depth
+        File fixed_telo_avg_cov_txt = SingleReadsQC.fixed_telo_average_coverage_txt
+        String fixed_telo_avg_cov = SingleReadsQC.fixed_telo_average_coverage
+
 
     }
 }

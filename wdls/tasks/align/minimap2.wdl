@@ -35,7 +35,8 @@ task Minimap2 {
         MEM_FOR_SORT=$( echo "" | awk "{print int(($RAM_IN_GB - 1)/$NPROCS)}" )
 
         # No RG parameter needed as it's already in the BAM
-        MAP_PARAMS="-ayYL --MD --eqx -x ~{map_preset} -t $NPROCS ~{ref_fasta}"
+        # drop y since it's causing faulty bam issues >:|
+        MAP_PARAMS="-aYL --MD --eqx -x ~{map_preset} -t $NPROCS ~{ref_fasta}"
 
         SORT_PARAMS="-@ $NPROCS -m${MEM_FOR_SORT}G --no-PG -o ~{prefix}.pre.bam"
         FILE="~{reads_file}"
@@ -67,7 +68,7 @@ task Minimap2 {
         # Run calmd on the pre-processed BAM
         samtools calmd -b --no-PG "~{prefix}.pre.bam" "~{ref_fasta}" > "~{prefix}.bam"
         samtools index -@ "$NPROCS" "~{prefix}.bam"
-        rm *.pre.bam
+        rm ./*.pre.bam
     >>>
 
     output {

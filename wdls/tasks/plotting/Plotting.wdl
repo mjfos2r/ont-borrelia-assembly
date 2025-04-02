@@ -19,19 +19,23 @@ task PlotBamCoverage {
             --bam "~{input_bam}" \
             --outpath "BamCovPlots" \
             --rolling_window 50 \
-            --threshold 10 -s -c
+            --threshold 10 -s -c \
+            -n 22
         tar -zcvf BamCovPlots.tar.gz BamCovPlots/
 
         # Get our total genome size and then get the average coverage across all positions.
         GSIZE=$(samtools view -H "~{input_bam}" | grep -P '^@SQ' | cut -f 3 -d ':' | awk '{sum+=$1} END {print sum}')
-        samtools depth "~{input_bam}" | awk -v gsize="$GSIZE" '{sum+=$3} END { print sum/gsize}' > average_coverage.txt
+        samtools depth "~{input_bam}" | awk -v gsize="$GSIZE" '{sum+=$3} END { print sum/gsize "X"}' > average_depth.txt
+        samtools coverage "~{input_bam}" | awk 'NR>1 {sum+=$6*$3; total+=$3} END {print sum/total "%"}' > average_coverage.txt
     >>>
 
     output {
         Array[File] plots = glob("BamCovPlots/*")
         File plots_targz = "BamCovPlots.tar.gz"
+        File average_depth_txt  = "average_depth.txt"
+        String average_depth = read_string("average_depth.txt")
         File average_coverage_txt  = "average_coverage.txt"
-        Int average_coverage = read_int("average_coverage.txt")
+        String average_coverage = read_string("average_coverage.txt")
     }
 
     #########################
