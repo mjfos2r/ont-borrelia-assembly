@@ -72,7 +72,7 @@ task ResolveTelomeres {
         disk_gb:            disk_size,
         boot_disk_gb:       50,
         preemptible_tries:  0,
-        max_retries:        1,
+        max_retries:        3,
         docker:             "mjfos2r/telomere-tools:latest"
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])

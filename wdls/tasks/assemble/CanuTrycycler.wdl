@@ -43,7 +43,7 @@ task CanuFast {
         disk_gb:            disk_size,
         boot_disk_gb:       25,
         preemptible_tries:  0,
-        max_retries:        0,
+        max_retries:        3,
         docker:             "mjfos2r/canu:latest"
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
@@ -84,7 +84,7 @@ task CanuTrimContigs {
     command <<<
         set -euxo pipefail
         mkdir -p trimmed_asm
-        /opt/trycycler/scripts/canu_trim.py "~{contigs}" > trimmed_asm/"~{output_file}"
+        /opt/Trycycler/scripts/canu_trim.py "~{contigs}" > trimmed_asm/"~{output_file}"
     >>>
 
     output {
