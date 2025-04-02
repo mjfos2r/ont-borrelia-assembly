@@ -74,7 +74,8 @@ task CanuTrimContigs {
 
     parameter_meta {
         contigs:  "Assembled contigs to be trimmed and circularized"
-        subset_id:   "Indicate which read subset these contigs originated from in the output file."
+        subsample_id:   "Indicate which read subset these contigs originated from in the output file."
+        prefix:   "Indicate prefix for output file naming."
     }
 
     Int disk_size = 50 * ceil(size(contigs, "GB"))

@@ -45,7 +45,7 @@ workflow AssembleCanu {
     call CANUTry.CanuTrimContigs {
         input:
             contigs = Canu.contigs,
-            subsample_id = sample_id
+            prefix = sample_id
     }
     call POLISH.Dorado {
         input:
