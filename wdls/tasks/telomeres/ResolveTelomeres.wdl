@@ -21,7 +21,7 @@ task ResolveTelomeres {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 50 + 6*ceil(size(reads, "GB"))
+    Int disk_size = 50 + 8*ceil(size(reads, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -66,7 +66,7 @@ task ResolveTelomeres {
         cpu_cores:          4,
         mem_gb:             16,
         disk_gb:            disk_size,
-        boot_disk_gb:       10,
+        boot_disk_gb:       50,
         preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/telomere-tools:latest"
