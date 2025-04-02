@@ -15,12 +15,14 @@ task PlotBamCoverage {
 
     command <<<
         set -euxo pipefail
+        REF_COUNT=$(samtools view -H "~{input_bam}" | grep -c "^@SQ")
+
         bam2plot from_bam \
             --bam "~{input_bam}" \
             --outpath "BamCovPlots" \
             --rolling_window 50 \
             --threshold 10 -s -c \
-            -n 22
+            -n $REF_COUNT
         tar -zcvf BamCovPlots.tar.gz BamCovPlots/
 
         # Get our total genome size and then get the average coverage across all positions.

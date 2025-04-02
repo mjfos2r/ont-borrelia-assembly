@@ -3,7 +3,7 @@ version 1.0
 import "../tasks/assemble/Canu.wdl" as CANU
 import "../tasks/assemble/CanuTrycycler.wdl" as CANUTry
 import "../tasks/assemble/Dorado.wdl" as POLISH
-import "../tasks/align/minimap2.wdl" as MM2
+import "../workflows/AlignAndPlotCoverage.wdl" as ALN
 
 workflow AssembleCanu {
 
@@ -27,7 +27,6 @@ workflow AssembleCanu {
         File renamed_bam
         Float genome_size
         File fixed_reads
-        File fixed_Reads2Ref
         File reference_fa
         Float correct_error_rate = 0.144
         Float trim_error_rate = 0.144
@@ -50,15 +49,16 @@ workflow AssembleCanu {
     }
     call POLISH.Dorado {
         input:
-            reads = fixed_Reads2Ref,
+            reads = renamed_bam,
             draft_asm = CanuTrimContigs.trimmed,
             sample_id = sample_id
     }
-    call MM2.Minimap2 as Reads2Asm {
+    call ALN.AlignAndPlotCoverage as Reads2Asm {
         input:
-            reads_file = renamed_bam,
-            ref_fasta = reference_fa,
-            prefix = sample_id
+            reads = fixed_reads,
+            reference = reference_fa,
+            prefix = sample_id,
+            map_preset = 'map-ont'
     }
 
     output {
@@ -72,5 +72,11 @@ workflow AssembleCanu {
         # minimap2 output
         File ReadsToPolishedAsm = Reads2Asm.aligned_bam
         File ReadsToPolishedAsmIndex = Reads2Asm.aligned_bai
+        Array[File] coverage_plots = Reads2Asm.coverage_plots
+        File plots_targz = Reads2Asm.plots_targz
+        File average_depth_txt = Reads2Asm.average_depth_txt
+        String average_depth = Reads2Asm.average_depth
+        File average_coverage_txt = Reads2Asm.average_coverage_txt
+        String average_coverage = Reads2Asm.average_coverage
     }
 }
