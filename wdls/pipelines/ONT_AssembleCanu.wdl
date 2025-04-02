@@ -56,7 +56,7 @@ workflow AssembleCanu {
     call ALN.AlignAndPlotCoverage as Reads2Asm {
         input:
             reads = fixed_reads,
-            reference = reference_fa,
+            reference = Dorado.polished,
             prefix = sample_id,
             map_preset = 'map-ont'
     }
