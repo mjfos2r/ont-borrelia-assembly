@@ -65,7 +65,7 @@ workflow AssembleCanu {
             reads = Dorado.polished,
             reference = reference_fa,
             prefix = sample_id,
-            map_preset = 'map-ont'
+            map_preset = 'asm5'
     }
 
     output {
@@ -86,13 +86,13 @@ workflow AssembleCanu {
         File average_coverage_txt = Reads2Asm.average_coverage_txt
         String average_coverage = Reads2Asm.average_coverage
         # minimap2 output
-        File ReadsToPolishedAsm = Reads2Asm.aligned_bam
-        File ReadsToPolishedAsmIndex = Reads2Asm.aligned_bai
-        Array[File] coverage_plots = Reads2Asm.coverage_plots
-        File plots_targz = Reads2Asm.plots_targz
-        File average_depth_txt = Reads2Asm.average_depth_txt
-        String average_depth = Reads2Asm.average_depth
-        File average_coverage_txt = Reads2Asm.average_coverage_txt
-        String average_coverage = Reads2Asm.average_coverage
+        File ReadsToPolishedAsm = Asm2Ref.aligned_bam
+        File ReadsToPolishedAsmIndex = Asm2Ref.aligned_bai
+        Array[File] coverage_plots = Asm2Ref.coverage_plots
+        File plots_targz = Asm2Ref.plots_targz
+        File average_depth_txt = Asm2Ref.average_depth_txt
+        String average_depth = Asm2Ref.average_depth
+        File average_coverage_txt = Asm2Ref.average_coverage_txt
+        String average_coverage = Asm2Ref.average_coverage
     }
 }
