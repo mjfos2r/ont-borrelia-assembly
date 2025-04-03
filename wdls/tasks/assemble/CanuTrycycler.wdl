@@ -84,11 +84,11 @@ task CanuTrimContigs {
     command <<<
         set -euxo pipefail
         mkdir -p trimmed_asm
-        /opt/Trycycler/scripts/canu_trim.py "~{contigs}" > trimmed_asm/"~{output_file}"
+        python3 /usr/bin/local/canu_trim.py "~{contigs}" > trimmed_asm/"~{output_file}"
     >>>
 
     output {
-        File trimmed = output_file # feels broken?
+        File trimmed = "trimmed_asm/~{output_file}"
     }
 
     #########################
