@@ -84,7 +84,7 @@ task CanuTrimContigs {
     command <<<
         set -euxo pipefail
         mkdir -p trimmed_asm
-        python3 /usr/bin/local/canu_trim.py "~{contigs}" > trimmed_asm/"~{output_file}"
+        python3 /usr/local/bin/canu_trim.py "~{contigs}" > trimmed_asm/"~{output_file}"
     >>>
 
     output {
