@@ -42,15 +42,15 @@ workflow AssembleCanu {
             assemble_error_rate = assemble_error_rate,
             prefix = sample_id,
     }
-    call CANUTry.CanuTrimContigs {
-        input:
-            contigs = Canu.contigs,
-            prefix = sample_id
-    }
+    #call CANUTry.CanuTrimContigs {
+    #    input:
+    #        contigs = Canu.contigs,
+    #        prefix = sample_id
+    #}
     call POLISH.Dorado {
         input:
             reads = renamed_bam,
-            draft_asm = CanuTrimContigs.trimmed,
+            draft_asm = Canu.contigs,
             sample_id = sample_id
     }
     call ALN.AlignAndPlotCoverage as Reads2Asm {
@@ -60,15 +60,31 @@ workflow AssembleCanu {
             prefix = sample_id,
             map_preset = 'map-ont'
     }
+        call ALN.AlignAndPlotCoverage as Asm2Ref {
+        input:
+            reads = Dorado.polished,
+            reference = reference_fa,
+            prefix = sample_id,
+            map_preset = 'map-ont'
+    }
 
     output {
         # canu output
         File untrimmed_contigs = Canu.contigs
-        File trimmed_contigs = CanuTrimContigs.trimmed
+        #File trimmed_contigs = CanuTrimContigs.trimmed
         # dorado polishing output
         File ReadsToRawAsm = Dorado.bam
         File ReadsToRawAsmIndex = Dorado.bai
         File PolishedContigs = Dorado.polished
+        # minimap2 output
+        File ReadsToPolishedAsm = Reads2Asm.aligned_bam
+        File ReadsToPolishedAsmIndex = Reads2Asm.aligned_bai
+        Array[File] coverage_plots = Reads2Asm.coverage_plots
+        File plots_targz = Reads2Asm.plots_targz
+        File average_depth_txt = Reads2Asm.average_depth_txt
+        String average_depth = Reads2Asm.average_depth
+        File average_coverage_txt = Reads2Asm.average_coverage_txt
+        String average_coverage = Reads2Asm.average_coverage
         # minimap2 output
         File ReadsToPolishedAsm = Reads2Asm.aligned_bam
         File ReadsToPolishedAsmIndex = Reads2Asm.aligned_bai

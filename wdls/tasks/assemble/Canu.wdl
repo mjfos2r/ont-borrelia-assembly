@@ -201,7 +201,7 @@ task Assemble {
             -p "~{prefix}" -d canu_assemble_output \
             genomeSize="~{genome_size}"m \
             correctedErrorRate="~{error_rate}" \
-            -nanopore-corrected \
+            -corrected -nanopore\
             "~{trimmed_reads}"
     >>>
 
