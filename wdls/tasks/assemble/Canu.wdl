@@ -14,7 +14,10 @@ workflow Canu {
         corOutCoverage:       "[ Default: 200 ] How many reads to retain for assembly, canu defaults to 40 but we're gonna default to 200 to retain a ton.."
         trim_error_rate:      "parameter to canu's 'correctedErrorRate'"
         assemble_error_rate:  "parameter to canu's 'correctedErrorRate'"
-        min_reads:            "[ Default: 5 ] Minimum number of reads for a contig to be kept."
+        minReads:      "[ Default: 5 ] Minimum number of reads for a contig to be kept."
+        minLength:     "[ Default: 2500 ] Minimum length for contigs to avoid being murked. Kill all contigs less than 2500bp."
+        lowCovSpan:    "[ Default: 0.5 ] maximum amount of a contig that can be below the min coverage depth (lowCovDepth)"
+        lowCovDepth:   "[ Default: 5 ] minimum depth allowed for a contig. see lowCovSpan. (basically if over half of the contig is <5X it's trash!)"
         prefix:               "[ Default: 'canu' ] prefix to output files"
     }
 
@@ -26,7 +29,10 @@ workflow Canu {
         Int corOutCoverage = 200
         Float trim_error_rate
         Float assemble_error_rate
-        Int min_reads = 5
+        Int minReads = 5
+        Int minLength = 2500
+        Float lowCovSpan = 0.5
+        Int lowCovDepth = 5
 
         String prefix
     }
@@ -53,7 +59,10 @@ workflow Canu {
             genome_size = genome_size,
             trimmed_reads = Trim.trimmed_reads,
             error_rate = assemble_error_rate,
-            min_reads = min_reads,
+            minReads = minReads,
+            minLength = minLength,
+            lowCovSpan = lowCovSpan,
+            lowCovDepth = lowCovDepth,
             prefix = prefix
     }
 
@@ -186,7 +195,10 @@ task Assemble {
         Float genome_size
         File trimmed_reads
         Float error_rate
-        Int min_reads = 5
+        Int minReads = 5
+        Int minLength = 2500
+        Float lowCovSpan = 0.5
+        Int lowCovDepth = 5
         String prefix = "canu"
 
         RuntimeAttr? runtime_attr_override
@@ -196,7 +208,10 @@ task Assemble {
         trimmed_reads:  "reads that have been canu-corrected-trimmed"
         genome_size:    "estimate on genome size (parameter to canu's 'genomeSize')"
         error_rate:     "parameter to canu's 'correctedErrorRate'"
-        min_reads:      "[ Default: 5 ] Minimum number of reads for a contig to be kept."
+        minReads:      "[ Default: 5 ] Minimum number of reads for a contig to be kept."
+        minLength:     "[ Default: 2500 ] Minimum length for contigs to avoid being murked. Kill all contigs less than 2500bp."
+        lowCovSpan:    "[ Default: 0.5 ] maximum amount of a contig that can be below the min coverage depth (lowCovDepth)"
+        lowCovDepth:   "[ Default: 5 ] minimum depth allowed for a contig. see lowCovSpan. (basically if over half of the contig is <5X it's trash!)"
         prefix:         "[ Default: 'canu' ] prefix to output files"
 
     }
@@ -205,14 +220,22 @@ task Assemble {
 
     command <<<
         set -euxo pipefail
+        # contigFilter
+        #    <minReads,       integer=2>
+        #    <minLength,      integer=0>
+        #    <singleReadSpan, float=1.0>
+        #    <lowCovSpan,     float=0.5>
+        #    <lowCovDepth,    integer=5>
 
         canu -assemble \
             -p "~{prefix}" -d canu_assemble_output \
             genomeSize="~{genome_size}"m \
             correctedErrorRate="~{error_rate}" \
-            minReadCount="~{min_reads}" \
+            contigFilter="~{minReads} ~{minLength} 1.0 ~{lowCovSpan} ~{lowCovDepth}" \
             -corrected -nanopore \
             "~{trimmed_reads}"
+
+            canu -assemble -p EU_Bb_04 -d canu_assemble_output genomeSize=1.5m correctedErrorRate=0.144
     >>>
 
     output {
