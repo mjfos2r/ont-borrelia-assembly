@@ -234,8 +234,6 @@ task Assemble {
             contigFilter="~{minReads} ~{minLength} 1.0 ~{lowCovSpan} ~{lowCovDepth}" \
             -corrected -nanopore \
             "~{trimmed_reads}"
-
-            canu -assemble -p EU_Bb_04 -d canu_assemble_output genomeSize=1.5m correctedErrorRate=0.144
     >>>
 
     output {
