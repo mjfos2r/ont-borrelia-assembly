@@ -109,5 +109,7 @@ workflow AssembleCanu {
         String Asm2Ref_average_coverage = Asm2Ref.average_coverage
         # quast output
         File QuastReports = Quast.reports
+        Int num_contigs = Quast.num_contigs
+        Int asm_N50 = Quast.asm_N50
     }
 }
