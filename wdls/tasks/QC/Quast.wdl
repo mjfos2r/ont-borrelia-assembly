@@ -22,6 +22,7 @@ task Quast {
         File Reads2AsmBam
         File Reads2RefBam
     }
+    Int disk_size = 50 + 7 * ceil(size(fixed_reads, "GB"))
 
     command <<<
         NPROC=$(awk '/^processor/{print}' /proc/cpuinfo | wc -l)
@@ -33,7 +34,6 @@ task Quast {
             -g "~{reference_gff}" \
             --ref-bam "~{Reads2RefBam}"
             --operons "~{assembly_gff}" \
-            --upper-bound-assembly "~{fixed_reads}" \
             --nanopore "~{fixed_reads}"
             --bam "~{Reads2AsmBam}"
         tar -czf quast.tar.gz quast_output/
@@ -48,10 +48,10 @@ task Quast {
         cpu_cores:          32,
         mem_gb:             32,
         disk_gb:            disk_size,
-        boot_disk_gb:       25,
+        boot_disk_gb:       50,
         preemptible_tries:  0,
         max_retries:        0,
-        docker:             "mjfos2r/Quast:latest" ##TODO: WRITE MY OWN CONTAINER <- "done, just need to get things tested."
+        docker:             "mjfos2r/quast:latest"
     }
     RuntimeAttr runtime_attr = select_first([runtime_attr_override, default_attr])
     runtime {

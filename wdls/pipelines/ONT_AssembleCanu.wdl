@@ -1,9 +1,10 @@
 version 1.0
 
 import "../tasks/assemble/Canu.wdl" as CANU
-import "../tasks/assemble/CanuTrycycler.wdl" as CANUTry
 import "../tasks/assemble/Dorado.wdl" as POLISH
 import "../workflows/AlignAndPlotCoverage.wdl" as ALN
+import "../tasks/QC/Quast.wdl" as QC
+#import "../tasks/assemble/CanuTrycycler.wdl" as CANUTry
 
 workflow AssembleCanu {
 
@@ -67,6 +68,9 @@ workflow AssembleCanu {
             prefix = sample_id,
             map_preset = 'asm5'
     }
+        call QC.Quast {
+
+        }
 
     output {
         # canu output
