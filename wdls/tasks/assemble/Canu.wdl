@@ -68,11 +68,11 @@ task Correct {
     }
 
     parameter_meta {
-        prefix:        "[ Default: 'canu' ] prefix to output files"
-        reads:         "reads to be canu-corrected"
-        genome_size:   "estimate on genome size (parameter to canu's 'genomeSize')"
-        error_rate:    "parameter to canu's 'correctedErrorRate'"
-        corOutCoverage "[ Default: 200 ] How many reads to retain for assembly, canu defaults to 40 but we're gonna default to 200 to retain a ton.."
+        prefix:         "[ Default: 'canu' ] prefix to output files"
+        reads:          "reads to be canu-corrected"
+        genome_size:    "estimate on genome size (parameter to canu's 'genomeSize')"
+        error_rate:     "parameter to canu's 'correctedErrorRate'"
+        corOutCoverage: "[ Default: 200 ] How many reads to retain for assembly, canu defaults to 40 but we're gonna default to 200 to retain a ton.."
     }
 
     Int disk_size = 50 + 20 * ceil(size(reads, "GB"))
