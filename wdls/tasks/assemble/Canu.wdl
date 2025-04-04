@@ -11,7 +11,7 @@ workflow Canu {
         reads:                "reads to be canu-corrected"
         genome_size:          "estimate on genome size (parameter to canu's 'genomeSize')"
         correct_error_rate:   "parameter to canu's 'correctedErrorRate'"
-        corOutCoverage: "[ Default: 200 ] How many reads to retain for assembly, canu defaults to 40 but we're gonna default to 200 to retain a ton.."
+        corOutCoverage:       "[ Default: 200 ] How many reads to retain for assembly, canu defaults to 40 but we're gonna default to 200 to retain a ton.."
         trim_error_rate:      "parameter to canu's 'correctedErrorRate'"
         assemble_error_rate:  "parameter to canu's 'correctedErrorRate'"
         min_reads:            "[ Default: 5 ] Minimum number of reads for a contig to be kept."
@@ -23,7 +23,7 @@ workflow Canu {
 
         Float genome_size
         Float correct_error_rate
-        Int corOutCoverage
+        Int corOutCoverage = 200
         Float trim_error_rate
         Float assemble_error_rate
         Int min_reads = 5
