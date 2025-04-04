@@ -59,23 +59,23 @@ workflow Canu {
 # performs canu correct on raw reads, currently assumes ONT reads
 task Correct {
     input {
+        String prefix = "canu"
         File reads
         Float genome_size
         Float error_rate
-        String prefix = "canu"
-
+        Int corOutCoverage = 200
         RuntimeAttr? runtime_attr_override
     }
 
     parameter_meta {
-        reads:        "reads to be canu-corrected"
-        genome_size:  "estimate on genome size (parameter to canu's 'genomeSize')"
-        error_rate:   "parameter to canu's 'correctedErrorRate'"
-        prefix:       "[ Default: 'canu' ] prefix to output files"
-
+        prefix:        "[ Default: 'canu' ] prefix to output files"
+        reads:         "reads to be canu-corrected"
+        genome_size:   "estimate on genome size (parameter to canu's 'genomeSize')"
+        error_rate:    "parameter to canu's 'correctedErrorRate'"
+        corOutCoverage "[ Default: 200 ] How many reads to retain for assembly, canu defaults to 40 but we're gonna default to 200 to retain a ton.."
     }
 
-    Int disk_size = 150 * ceil(size(reads, "GB"))
+    Int disk_size = 50 + 20 * ceil(size(reads, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -84,6 +84,7 @@ task Correct {
             -p "~{prefix}" -d canu_correct_output \
             genomeSize="~{genome_size}"m \
             corMaxEvidenceErate=0.15 \
+            corOutCoverage="~{corOutCoverage}" \
             correctedErrorRate="~{error_rate}" \
             -nanopore \
             "~{reads}"
@@ -134,7 +135,7 @@ task Trim {
 
     }
 
-    Int disk_size = 50 * ceil(size(corrected_reads, "GB"))
+    Int disk_size = 50 + 20 * ceil(size(corrected_reads, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -179,6 +180,7 @@ task Assemble {
         Float genome_size
         File trimmed_reads
         Float error_rate
+        Int min_reads = 5
         String prefix = "canu"
 
         RuntimeAttr? runtime_attr_override
@@ -188,11 +190,12 @@ task Assemble {
         trimmed_reads:  "reads that have been canu-corrected-trimmed"
         genome_size:    "estimate on genome size (parameter to canu's 'genomeSize')"
         error_rate:     "parameter to canu's 'correctedErrorRate'"
+        min_reads:      "[ Default: 5 ] Minimum number of reads for a contig to be kept."
         prefix:         "[ Default: 'canu' ] prefix to output files"
 
     }
 
-    Int disk_size = 50 * ceil(size(trimmed_reads, "GB"))
+    Int disk_size = 50 + 20 * ceil(size(trimmed_reads, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -201,7 +204,8 @@ task Assemble {
             -p "~{prefix}" -d canu_assemble_output \
             genomeSize="~{genome_size}"m \
             correctedErrorRate="~{error_rate}" \
-            -corrected -nanopore\
+            minReadCount="~{min_reads}" \
+            -corrected -nanopore \
             "~{trimmed_reads}"
     >>>
 
@@ -214,7 +218,7 @@ task Assemble {
         cpu_cores:          32,
         mem_gb:             32,
         disk_gb:            disk_size,
-        boot_disk_gb:       25,
+        boot_disk_gb:       50,
         preemptible_tries:  0,
         max_retries:        0,
         docker:             "us.gcr.io/broad-dsp-lrma/lr-canu:0.1.0"
