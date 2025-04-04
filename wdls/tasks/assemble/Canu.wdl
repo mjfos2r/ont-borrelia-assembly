@@ -11,8 +11,10 @@ workflow Canu {
         reads:                "reads to be canu-corrected"
         genome_size:          "estimate on genome size (parameter to canu's 'genomeSize')"
         correct_error_rate:   "parameter to canu's 'correctedErrorRate'"
+        corOutCoverage: "[ Default: 200 ] How many reads to retain for assembly, canu defaults to 40 but we're gonna default to 200 to retain a ton.."
         trim_error_rate:      "parameter to canu's 'correctedErrorRate'"
         assemble_error_rate:  "parameter to canu's 'correctedErrorRate'"
+        min_reads:            "[ Default: 5 ] Minimum number of reads for a contig to be kept."
         prefix:               "[ Default: 'canu' ] prefix to output files"
     }
 
@@ -21,8 +23,10 @@ workflow Canu {
 
         Float genome_size
         Float correct_error_rate
+        Int corOutCoverage
         Float trim_error_rate
         Float assemble_error_rate
+        Int min_reads = 5
 
         String prefix
     }
@@ -32,6 +36,7 @@ workflow Canu {
             reads = reads,
             genome_size = genome_size,
             error_rate = correct_error_rate,
+            corOutCoverage = corOutCoverage,
             prefix = prefix
     }
 
@@ -48,6 +53,7 @@ workflow Canu {
             genome_size = genome_size,
             trimmed_reads = Trim.trimmed_reads,
             error_rate = assemble_error_rate,
+            min_reads = min_reads,
             prefix = prefix
     }
 
