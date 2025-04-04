@@ -18,6 +18,7 @@ workflow AssembleCanu {
         fixed_reads: "telomere fixed reads in fastq.gz"
         fixed_Reads2Ref: "Alignment of fixed reads against the reference genome."
         reference_fa: "reference genome to pass to Quast"
+        reference_gff: "reference genome annotations to pass to Quast"
         correct_error_rate: "[ Default: 0.144 ] Error rate to pass to canu for correction."
         trim_error_rate: "[ Default: 0.144 ] Error rate to pass to canu for trimming of corrected reads "
         assemble_error_rate: "[ Default: 0.144 ] Error rate to pass to canu for assembly of trimmed and corrected reads"
@@ -29,6 +30,8 @@ workflow AssembleCanu {
         Float genome_size
         File fixed_reads
         File reference_fa
+        File reference_gff
+        File Reads2RefBam
         Float correct_error_rate = 0.144
         Float trim_error_rate = 0.144
         Float assemble_error_rate = 0.144
@@ -61,16 +64,22 @@ workflow AssembleCanu {
             prefix = sample_id,
             map_preset = 'map-ont'
     }
-        call ALN.AlignAndPlotCoverage as Asm2Ref {
+    call ALN.AlignAndPlotCoverage as Asm2Ref {
         input:
             reads = Dorado.polished,
             reference = reference_fa,
             prefix = sample_id,
             map_preset = 'asm5'
     }
-        call QC.Quast {
-
-        }
+    call QC.Quast {
+        input:
+            assembly_fa = Dorado.polished,
+            reference_fa = reference_fa,
+            reference_gff = reference_gff,
+            fixed_reads = fixed_reads,
+            Reads2AsmBam = Reads2Asm.aligned_bam,
+            Reads2RefBam = Reads2RefBam,
+    }
 
     output {
         # canu output
@@ -98,5 +107,7 @@ workflow AssembleCanu {
         String Asm2Ref_average_depth = Asm2Ref.average_depth
         File Asm2Ref_average_coverage_txt = Asm2Ref.average_coverage_txt
         String Asm2Ref_average_coverage = Asm2Ref.average_coverage
+        # quast output
+        File QuastReports = Quast.reports
     }
 }

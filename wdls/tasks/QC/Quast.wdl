@@ -1,3 +1,7 @@
+version 1.0
+
+import "../../structs/Structs.wdl"
+
 task Quast {
     meta {
         description: "Task to generate assembly QC metrics using Quast and a reference genome"
@@ -5,7 +9,6 @@ task Quast {
 
     parameter_meta {
         assembly_fa: "fasta for our draft assembly"
-        assembly_gff: "gff3 file for our draft assembly"
         reference_fa: "reference genome for misassembly determination"
         reference_gff: "gff file containing annotations for the reference."
         fixed_reads: "Fastq file containing the reads for our draft assembly"
@@ -15,12 +18,12 @@ task Quast {
 
     input {
         File assembly_fa
-        File assembly_gff
         File reference_fa
         File reference_gff
         File fixed_reads
         File Reads2AsmBam
         File Reads2RefBam
+        RuntimeAttr? runtime_attr_override
     }
     Int disk_size = 50 + 7 * ceil(size(fixed_reads, "GB"))
 
@@ -32,15 +35,15 @@ task Quast {
             -t "$NPROC" \
             -r "~{reference_fa}" \
             -g "~{reference_gff}" \
-            --ref-bam "~{Reads2RefBam}"
-            --operons "~{assembly_gff}" \
-            --nanopore "~{fixed_reads}"
-            --bam "~{Reads2AsmBam}"
+            --nanopore "~{fixed_reads}" \
+            --ref-bam "~{Reads2RefBam}" \
+            --bam "~{Reads2AsmBam}" \
+            "~{assembly_fa}"
         tar -czf quast.tar.gz quast_output/
     >>>
 
     output {
-        File report = "quast.tar.gz"
+        File reports = "quast.tar.gz"
     }
 
     #########################
