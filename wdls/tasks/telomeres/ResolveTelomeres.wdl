@@ -23,7 +23,7 @@ task ResolveTelomeres {
 
     Int disk_size = 50 + 8*ceil(size(reads, "GB"))
     Int reads_size = ceil(size(reads, "GB"))
-    Int mem_gb = 3*reads_size
+    Int mem_gb = 16 + 3*reads_size
 
     command <<<
         set -euxo pipefail
