@@ -118,7 +118,7 @@ task Polish {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 4 * ceil(size([draft_asm], "GB"))
+    Int disk_size = 50 + 6 * ceil(size(alignment, "GB"))
 
     command <<<
         set -euxo pipefail
