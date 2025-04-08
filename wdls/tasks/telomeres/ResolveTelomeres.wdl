@@ -51,7 +51,9 @@ task ResolveTelomeres {
 
         # Step 5: Merge clipped telomere reads and the rest of our reads.
         echo "Filtering out telomere reads..."
-        python3 /opt/merge_reads.py "~{sample_id}.no_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq" "~{sample_id}.fixed.fastq"
+        #python3 /opt/merge_reads.py "~{sample_id}.no_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq" "~{sample_id}.fixed.fastq"
+        # cromwell keeps killing my simple python script so back to cat it is.
+        cat "~{sample_id}.no_telomeres.fastq" "~{sample_id}.clipped_telomeres.fastq" >"~{sample_id}.fixed.fastq"
 
         # step 6: gzip reads.
         cat "~{sample_id}.fixed.fastq" | gzip -9 > "~{sample_id}.fixed.fastq.gz"
