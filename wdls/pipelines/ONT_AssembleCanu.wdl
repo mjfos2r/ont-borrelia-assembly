@@ -26,7 +26,7 @@ workflow AssembleCanu {
 
     input {
         String sample_id
-        File renamed_bam
+        #File renamed_bam
         Float genome_size
         File fixed_reads
         File reference_fa
@@ -51,29 +51,30 @@ workflow AssembleCanu {
     #        contigs = Canu.contigs,
     #        prefix = sample_id
     #}
-    call POLISH.Dorado {
-        input:
-            reads = renamed_bam,
-            draft_asm = Canu.contigs,
-            sample_id = sample_id
-    }
+    # Polishing is disabled until the blank RG issue is solved.
+    #call POLISH.Dorado {
+    #    input:
+    #        reads = renamed_bam,
+    #        draft_asm = Canu.contigs,
+    #        sample_id = sample_id
+    #}
     call ALN.AlignAndPlotCoverage as Reads2Asm {
         input:
             reads = fixed_reads,
-            reference = Dorado.polished,
+            reference = Canu.contigs,
             prefix = sample_id,
             map_preset = 'map-ont'
     }
     call ALN.AlignAndPlotCoverage as Asm2Ref {
         input:
-            reads = Dorado.polished,
+            reads = Canu.contigs,
             reference = reference_fa,
             prefix = sample_id,
             map_preset = 'asm5'
     }
     call QC.Quast {
         input:
-            assembly_fa = Dorado.polished,
+            assembly_fa = Canu.contigs,
             reference_fa = reference_fa,
             reference_gff = reference_gff,
             fixed_reads = fixed_reads,
@@ -86,9 +87,9 @@ workflow AssembleCanu {
         File untrimmed_contigs = Canu.contigs
         #File trimmed_contigs = CanuTrimContigs.trimmed
         # dorado polishing output
-        File ReadsToRawAsm = Dorado.bam
-        File ReadsToRawAsmIndex = Dorado.bai
-        File PolishedContigs = Dorado.polished
+        #File ReadsToRawAsm = Dorado.bam
+        #File ReadsToRawAsmIndex = Dorado.bai
+        #File PolishedContigs = Dorado.polished
         # minimap2 output
         File Reads2Asm_bam = Reads2Asm.aligned_bam
         File Reads2Asm_bai = Reads2Asm.aligned_bai
