@@ -83,14 +83,14 @@ workflow AssembleCanu {
     }
 
     output {
-        # canu output
+        ## canu output
         File untrimmed_contigs = Canu.contigs
         #File trimmed_contigs = CanuTrimContigs.trimmed
-        # dorado polishing output
+        ## dorado polishing output
         #File ReadsToRawAsm = Dorado.bam
         #File ReadsToRawAsmIndex = Dorado.bai
         #File PolishedContigs = Dorado.polished
-        # minimap2 output
+        ## minimap2 output
         File Reads2Asm_bam = Reads2Asm.aligned_bam
         File Reads2Asm_bai = Reads2Asm.aligned_bai
         Array[File] Reads2Asm_coverage_plots = Reads2Asm.coverage_plots
@@ -99,7 +99,7 @@ workflow AssembleCanu {
         String Reads2Asm_average_depth = Reads2Asm.average_depth
         File Reads2Asm_average_coverage_txt = Reads2Asm.average_coverage_txt
         String Reads2Asm_average_coverage = Reads2Asm.average_coverage
-        # minimap2 output
+        ## minimap2 output
         File Asm2Ref_bam = Asm2Ref.aligned_bam
         File Asm2Ref_bai = Asm2Ref.aligned_bai
         Array[File] Asm2Ref_plots = Asm2Ref.coverage_plots
@@ -108,7 +108,7 @@ workflow AssembleCanu {
         String Asm2Ref_average_depth = Asm2Ref.average_depth
         File Asm2Ref_average_coverage_txt = Asm2Ref.average_coverage_txt
         String Asm2Ref_average_coverage = Asm2Ref.average_coverage
-        # quast output
+        ## quast output
         File QuastReports = Quast.reports
         Int num_contigs = Quast.num_contigs
         Int asm_N50 = Quast.asm_N50
