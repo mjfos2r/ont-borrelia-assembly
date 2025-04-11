@@ -16,6 +16,11 @@ task PlotBamCoverage {
     command <<<
         set -euxo pipefail
         REF_COUNT=$(samtools view -H "~{input_bam}" | grep -c "^@SQ")
+        if [ $REF_COUNT -gt 100 ]; then
+            echo "$REF_COUNT is greater than 100, defaulting to 100 for plotting."
+            REF_COUNT=100
+        else
+            echo "$REF_COUNT is less than 100."
 
         bam2plot from_bam \
             --bam "~{input_bam}" \
