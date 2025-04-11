@@ -39,7 +39,8 @@ task Quast {
             --ref-bam "~{Reads2RefBam}" \
             --bam "~{Reads2AsmBam}" \
             "~{assembly_fa}"
-        cat quast_output/report.tsv | grep "^# contigs\t" | sed 's/# //' | awk '{print $2}' > num_contigs.txt
+        cat quast_output/report.tsv | grep -P "^# contigs\t" | sed 's/# //' | awk '{print $2}' > num_contigs.txt
+        cat num_contigs.txt
         cat quast_output/report.tsv | grep "N50" | awk '{print $2}' > asm_N50.txt
         tar -czf quast.tar.gz quast_output/
     >>>
