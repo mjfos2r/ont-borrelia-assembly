@@ -56,7 +56,7 @@ task ResolveTelomeres {
         cat ~{sample_id}.no_telomeres.fastq ~{sample_id}.clipped_telomeres.fastq > ~{sample_id}.fixed.fastq
 
         # step 6: gzip reads.
-        cat ~{sample_id}.fixed.fastq | gzip -9 > ~{sample_id}.fixed.fastq.gz
+        cat ~{sample_id}.fixed.fastq | gzip > ~{sample_id}.fixed.fastq.gz
     >>>
 
     output {
