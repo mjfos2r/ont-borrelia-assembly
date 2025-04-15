@@ -21,7 +21,7 @@ task ResolveTelomeres {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 50 + 8*ceil(size(reads, "GB"))
+    Int disk_size = 50 + 10*ceil(size(reads, "GB"))
     Int reads_size = ceil(size(reads, "GB"))
     Int mem_gb = 16 + 3*reads_size
 
