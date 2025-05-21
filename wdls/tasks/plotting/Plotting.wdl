@@ -11,7 +11,7 @@ task PlotBamCoverage {
         input_bam: "input alignment to plot coverage of"
     }
 
-    Int disk_size = 50 + ceil(size(input_bam, "GB"))
+    Int disk_size = 50 + 2*ceil(size(input_bam, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -48,7 +48,7 @@ task PlotBamCoverage {
 
     #########################
     RuntimeAttr default_attr = object {
-        cpu_cores:          1,
+        cpu_cores:          2,
         mem_gb:             8,
         disk_gb:            disk_size,
         boot_disk_gb:       10,

@@ -1,9 +1,9 @@
 version 1.0
 
 import "../tasks/assemble/Canu.wdl" as CANU
-import "../tasks/assemble/Dorado.wdl" as POLISH
 import "../workflows/AlignAndPlotCoverage.wdl" as ALN
 import "../tasks/QC/Quast.wdl" as QC
+#import "../tasks/assemble/Dorado.wdl" as POLISH
 #import "../tasks/assemble/CanuTrycycler.wdl" as CANUTry
 
 workflow AssembleCanu {
@@ -37,6 +37,9 @@ workflow AssembleCanu {
         Float assemble_error_rate = 0.144
     }
 
+    # canu assemble failing for some samples at overlap correction stage.
+    # likely this: https://github.com/marbl/canu/issues/1746
+    # Probably a partition without overlaps or something similar. No clue how to debug given the lack of cromwell to delocalize all files.
     call CANU.Canu {
         input:
             reads = fixed_reads,

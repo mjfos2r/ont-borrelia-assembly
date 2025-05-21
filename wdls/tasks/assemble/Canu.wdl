@@ -101,7 +101,7 @@ task Correct {
             corMaxEvidenceErate=0.15 \
             corOutCoverage="~{corOutCoverage}" \
             correctedErrorRate="~{error_rate}" \
-            -nanopore \
+            -nanopore-raw \
             "~{reads}"
     >>>
 
@@ -111,8 +111,8 @@ task Correct {
 
     #########################
     RuntimeAttr default_attr = object {
-        cpu_cores:          32,
-        mem_gb:             32,
+        cpu_cores:          16,
+        mem_gb:             128,
         disk_gb:            disk_size,
         boot_disk_gb:       25,
         preemptible_tries:  0,
