@@ -98,22 +98,25 @@ task Bam2Fastq {
 
     input {
         File input_bam
-
+        String? sample_id
         Int num_cpus = 8
-        Int mem_gb = 16
+        Int mem_gb = 32
         RuntimeAttr? runtime_attr_override
     }
-    String filename = basename(input_bam)
-    Int disk_size = 50 + 3*ceil(size(input_bam, "GB"))
+    String bam_name = basename(input_bam)
+    String filename = select_first([sample_id, bam_name])
+    Int disk_size = 365 + 3*ceil(size(input_bam, "GB"))
 
     command <<<
-    set -euxo pipefail # if anything breaks crash out
+    set -euo pipefail # if anything breaks crash out
 
     # get the number of procs we have available
-    NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
+    NPROCS=$( cat /proc/cpuinfo | grep '^processor' | tail -n1 | awk '{print $NF+1}' )
 
+    samtools sort -n ~{input_bam} > sorted.bam
     # preserve all tags that dorado puts in the BAM.
-    samtools fastq -@ "$NPROCS" -T '*' -0 "~{filename}.fastq.gz" "~{input_bam}"
+    # and add _R1 to keep things consistent with the thiagen tool.
+    samtools fastq -@ "$NPROCS" -T '*' -0 "~{filename}_R1.fastq.gz" sorted.bam
     >>>
 
     output {
@@ -125,7 +128,7 @@ task Bam2Fastq {
         cpu_cores:          num_cpus,
         mem_gb:             mem_gb,
         disk_gb:            disk_size,
-        boot_disk_gb:       10,
+        boot_disk_gb:       50,
         preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/samtools:latest"
