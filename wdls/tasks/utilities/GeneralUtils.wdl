@@ -189,7 +189,7 @@ task DecompressRunTarball {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 50 + 3*ceil(size(tarball, "GB"))
+    Int disk_size = 200 + 3*ceil(size(tarball, "GB"))
 
     command <<<
         set -euxo pipefail
