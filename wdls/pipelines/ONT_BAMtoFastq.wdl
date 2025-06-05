@@ -19,6 +19,6 @@ workflow BAMtoFastq {
         sample_id = sample_id
     }
     output {
-        File reads = Bam2Fastq.fastq
+        File reads_fastq = Bam2Fastq.fastq
     }
 }
