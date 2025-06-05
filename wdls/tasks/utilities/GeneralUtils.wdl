@@ -121,8 +121,8 @@ task ValidateMd5sum {
         RuntimeAttr? runtime_attr_override
     }
 
-    # Estimate disk size - the compressed archive plus space for extraction and output
-    Int disk_size = ceil(size(file, "GB")) + 40
+    # Estimate disk size - the compressed archive plus min disk size
+    Int disk_size = 365 + ceil(size(file, "GB"))
 
     command <<<
     set -euxo pipefail # crash out
@@ -189,7 +189,7 @@ task DecompressRunTarball {
         RuntimeAttr? runtime_attr_override
     }
 
-    Int disk_size = 200 + 3*ceil(size(tarball, "GB"))
+    Int disk_size = 365 + 3*ceil(size(tarball, "GB"))
 
     command <<<
         set -euxo pipefail
@@ -202,6 +202,17 @@ task DecompressRunTarball {
         echo "#####################################"
         echo "# RUN TARBALL IS VALID: ~{is_valid} #"
         echo "#####################################"
+
+        if ! ~{is_valid}; then
+            echo "ERROR: NOT ATTEMPTING DECOMPRESSION SINCE TARBALL IS CORRUPTED!"
+            exit 1
+        fi
+        # Okay, so if the tarball checksum is valid, let's check for whether the tarball itself is corrupted
+        # for cases where we've hashed a bad tarball.
+        # this will exit 1 in that situation and crash out the whole script due to "set -euxo pipefail"
+        pigz -dc ~{tarball} | tar -tf - >/dev/null
+
+        # assuming we've made it this far, continue with processing.
         # handy snippet from community post: 360073540652-Cromwell-execution-directory
         gcs_task_call_basepath=$(cat gcs_delocalization.sh | grep -o '"gs:\/\/.*/glob-.*/' | sed 's#^"##' |sed 's#/$##' | head -n 1)
 
@@ -257,7 +268,7 @@ task DecompressRunTarball {
         cpu_cores:          num_cpus,
         mem_gb:             mem_gb,
         disk_gb:            disk_size,
-        boot_disk_gb:       10,
+        boot_disk_gb:       50,
         preemptible_tries:  0,
         max_retries:        1,
         docker:             "mjfos2r/samtools:latest"
