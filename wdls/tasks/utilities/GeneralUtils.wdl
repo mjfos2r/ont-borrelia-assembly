@@ -192,7 +192,7 @@ task DecompressRunTarball {
     Int disk_size = 365 + 3*ceil(size(tarball, "GB"))
 
     command <<<
-        set -euxo pipefail
+        set -euo pipefail
 
         NPROC=$(awk '/^processor/{print}' /proc/cpuinfo | wc -l)
 
@@ -207,12 +207,7 @@ task DecompressRunTarball {
             echo "ERROR: NOT ATTEMPTING DECOMPRESSION SINCE TARBALL IS CORRUPTED!"
             exit 1
         fi
-        # Okay, so if the tarball checksum is valid, let's check for whether the tarball itself is corrupted
-        # for cases where we've hashed a bad tarball.
-        # this will exit 1 in that situation and crash out the whole script due to "set -euxo pipefail"
-        pigz -dc ~{tarball} | tar -tf - >/dev/null
-
-        # assuming we've made it this far, continue with processing.
+        # todo: figure out a faster way to validate tarball integrity..
         # handy snippet from community post: 360073540652-Cromwell-execution-directory
         gcs_task_call_basepath=$(cat gcs_delocalization.sh | grep -o '"gs:\/\/.*/glob-.*/' | sed 's#^"##' |sed 's#/$##' | head -n 1)
 
@@ -220,7 +215,7 @@ task DecompressRunTarball {
         true > gcs_merged_bam_paths.txt
 
         # crack the tarball, strip the top bam_pass component so we're left with barcode dirs.
-        tar --use-compress-program=pigz -xvf ~{tarball} -C extracted --strip-components=1
+        tar --use-compress-program=pigz -xf ~{tarball} -C extracted --strip-components=1
 
         # Get a list of our directories, pull the barcode ID, all so we can make a list of files for each
         find extracted -mindepth 1 -maxdepth 1 -type d | sort > directory_list.txt

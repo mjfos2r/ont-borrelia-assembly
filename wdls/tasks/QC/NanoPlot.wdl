@@ -99,8 +99,8 @@ task NanoPlotFromSummary {
     #########################
     # BEGONE PREEMPTION
     RuntimeAttr default_attr = object {
-        cpu_cores:          16,
-        mem_gb:             64,
+        cpu_cores:          8,
+        mem_gb:             32,
         disk_gb:            disk_size,
         boot_disk_gb:       50,
         preemptible_tries:  0,
@@ -139,7 +139,7 @@ task NanoPlotFromRichFastqs {
     Int disk_size = 2*ceil(size(fastqs, "GB"))
 
     command <<<
-        set -euxo pipefail
+        set -euo pipefail
 
         NPROCS=$( grep '^processor' /proc/cpuinfo | tail -n1 | awk '{print $NF+1}' )
 
