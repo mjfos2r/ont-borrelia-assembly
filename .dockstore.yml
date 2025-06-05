@@ -9,7 +9,7 @@ workflows:
 - name: ONT_AssembleCanu
   subclass: wdl
   primaryDescriptorPath: /wdls/pipelines/ONT_AssembleCanu.wdl
-  - name: ONT_BAMtoFastq
+- name: ONT_BAMtoFastq
   subclass: wdl
   primaryDescriptorPath: /wdls/pipelines/ONT_BAMtoFastq.wdl
 
