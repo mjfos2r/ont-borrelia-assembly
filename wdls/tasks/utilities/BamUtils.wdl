@@ -126,7 +126,7 @@ task Bam2Fastq {
     echo "Samtools parameters: ~{st_params}"
     echo "*****"
     echo "Sorting input bam!"
-    samtools sort -n ~{input_bam} > sorted.bam
+    samtools sort -@ "$NPROCS" -n -o sorted.bam ~{input_bam}
     echo "Sorting finished! Beginning conversion of sorted.bam to fastq..."
     # preserve all tags that dorado puts in the BAM.
     # and add _R1 to keep things consistent with the thiagen workflow
