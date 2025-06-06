@@ -112,7 +112,8 @@ task Bam2Fastq {
     String bn_input = basename(input_bam)
     String fn_raw = select_first([sample_id, bn_input])
     String fn_clean = sub(fn_raw, "\\.bam$", "")
-    Int disk_size = 365 + 3*ceil(size(input_bam, "GB"))
+    Float input_size = size(input_bam, "GB")
+    Int disk_size = 365 + 3*ceil(input_size)
 
     command <<<
     set -euo pipefail # if anything breaks crash out
@@ -121,6 +122,7 @@ task Bam2Fastq {
     NPROCS=$( cat /proc/cpuinfo | grep '^processor' | tail -n1 | awk '{print $NF+1}' )
     echo "Input BAM File: ~{input_bam}"
     echo "Output Fastq File: ~{fn_clean}_R1.fastq.gz"
+    echo "Input BAM Size: ~{input_size}"
     echo "Disk Size: ~{disk_size}"
     echo "NPROCS: $NPROCS"
     echo "Samtools parameters: ~{st_params}"
