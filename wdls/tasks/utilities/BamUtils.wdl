@@ -88,23 +88,30 @@ task MergeBams {
 }
 
 task Bam2Fastq {
-        meta {
-        desciption: "convert bam to fastq.gz file and preserve all tags written by Dorado basecaller."
+    meta {
+        description: "convert bam to fastq.gz file and preserve all tags written by Dorado basecaller."
     }
 
     parameter_meta {
         input_bam: "Bam file to convert to fastq"
+        sample_id: "Optional: our sample id                          [Default: basename(input_bam)]"
+        st_params: "Parameters to pass to samtools during conversion [Default: -T '*']"
+        num_cpus:  "how many cores to use for conversion             [Default: 8]"
+        mem_gb:    "how much memory to use for conversion            [Default: 32]"
     }
 
     input {
         File input_bam
         String? sample_id
+        String st_params = "-T '*'"
         Int num_cpus = 8
         Int mem_gb = 32
         RuntimeAttr? runtime_attr_override
     }
-    String bam_name = basename(input_bam)
-    String filename = select_first([sample_id, bam_name])
+
+    String bn_input = basename(input_bam)
+    String fn_raw = select_first([sample_id, bn_input])
+    String fn_clean = sub(fn_raw, "\\.bam$", "")
     Int disk_size = 365 + 3*ceil(size(input_bam, "GB"))
 
     command <<<
@@ -115,12 +122,12 @@ task Bam2Fastq {
 
     samtools sort -n ~{input_bam} > sorted.bam
     # preserve all tags that dorado puts in the BAM.
-    # and add _R1 to keep things consistent with the thiagen tool.
-    samtools fastq -@ "$NPROCS" -T '*' -0 "~{filename}_R1.fastq.gz" sorted.bam
+    # and add _R1 to keep things consistent with the thiagen workflow
+    samtools fastq -@ "$NPROCS" ~{st_params} -0 "~{fn_clean}_R1.fastq.gz" sorted.bam
     >>>
 
     output {
-        File fastq = "~{filename}.fastq.gz"
+        File fastq = "~{fn_clean}_R1.fastq.gz"
     }
     # no preempt.
     #########################
