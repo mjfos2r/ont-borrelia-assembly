@@ -8,11 +8,12 @@ repos:
     verbose: true
     entry: miniwdl
     args: [check]
-- repo: https://github.com/adrienverge/yamllint.git
-  rev: v1.29.0
+- repo: local
   hooks:
-    - id: yamllint
-      name: yamllint
-      files: ".+\\.(yml|yaml)"
-      verbose: true
-      args: [-d, relaxed]
+  - id: yamllint
+    name: yamllint
+    language: system
+    files: ".+\\.(yml|yaml)"
+    verbose: true
+    entry: yamllint
+    args: [-d, relaxed]
