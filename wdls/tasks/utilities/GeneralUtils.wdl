@@ -178,6 +178,7 @@ task DecompressRunTarball {
     parameter_meta {
         tarball: "validated tarball to decompress"
         is_valid: "boolean flag indicating whether or not the tarball integrity is intact (md5sum)"
+        singleplex: "boolean flag to indicate whether the run being processed is barcoded or singleplex. must specify sample_id if set to true (default: false)"
         sample_id: "optional string to pass if the run being decompressed is a singleplex run."
     }
 
