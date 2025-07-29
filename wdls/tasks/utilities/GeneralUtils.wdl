@@ -172,16 +172,20 @@ task ValidateMd5sum {
 
 task DecompressRunTarball {
     meta {
-        description: "Decompress a validated run tarball using pigz"
+        description: "Decompress a validated run tarball containing barcodes using pigz"
     }
 
     parameter_meta {
         tarball: "validated tarball to decompress"
+        is_valid: "boolean flag indicating whether or not the tarball integrity is intact (md5sum)"
+        sample_id: "optional string to pass if the run being decompressed is a singleplex run."
     }
 
     input {
         File tarball
         Boolean is_valid
+        Boolean singleplex = false
+        String? sample_id
 
         # Runtime parameters
         Int num_cpus = 16
@@ -196,7 +200,16 @@ task DecompressRunTarball {
 
         NPROC=$(awk '/^processor/{print}' /proc/cpuinfo | wc -l)
 
-        mkdir -p extracted
+        if [ -n "~{sample_id}" ] && [ "~{singleplex}" == "true" ]; then
+            EXTRACTED="extracted/~{sample_id}"
+        elif [ "~{singleplex}" == "true" ] || [ -n "~{sample_id}" ]; then
+            echo "ERROR: Singleplex run or sample_id provided but not both! Cannot verify if meant to run as single or multiplex! Check your args and try again!" >&2
+            exit 1
+        else
+            EXTRACTED="extracted"
+        fi
+
+        mkdir -p "$EXTRACTED"
         mkdir -p merged
 
         echo "#####################################"
@@ -214,8 +227,8 @@ task DecompressRunTarball {
         echo "$gcs_task_call_basepath"
         true > gcs_merged_bam_paths.txt
 
-        # crack the tarball, strip the top bam_pass component so we're left with barcode dirs.
-        tar --use-compress-program=pigz -xf ~{tarball} -C extracted --strip-components=1
+        # crack the tarball, strip the top bam_pass component so we're left with barcode dirs. (or just our bams within the sampleid subdir)
+        tar --use-compress-program=pigz -xf ~{tarball} -C "$EXTRACTED" --strip-components=1
 
         # Get a list of our directories, pull the barcode ID, all so we can make a list of files for each
         find extracted -mindepth 1 -maxdepth 1 -type d | sort > directory_list.txt
@@ -227,9 +240,8 @@ task DecompressRunTarball {
         # Create/clear the counts file before the loop
         true > bam_counts.txt
 
-        # and you know what, we're gonna just merge our bams within this task. it's gonna take forever anyway and
-        # this simplifies things greatly.
-
+        # read the list of barcode dirs and then merge each barcode's bams.
+        # for singleplex, the barcode is the sampleid.
         while read -r DIR_PATH; do
             BARCODE=$(basename "$DIR_PATH")
             BAM_LIST="file_lists/${BARCODE}_bams.txt"
@@ -240,7 +252,6 @@ task DecompressRunTarball {
             samtools merge -f -@ "$NPROC" -o merged/"${BARCODE}.merged.bam" -b "$BAM_LIST"
             echo "${gcs_task_call_basepath}/${BARCODE}.merged.bam" >> gcs_merged_bam_paths.txt
         done < directory_list.txt
-
         >>>
 
     output {
@@ -248,11 +259,13 @@ task DecompressRunTarball {
         Int directory_count = read_int("directory_count.txt")
         # how many bams we got?
         Array[Int] bam_counts = read_lines("bam_counts.txt")
+        # output the lists of files we've just merged. no clue how I forgot to add this before...
+        Array[File] file_list = glob("file_lists/*_bams.txt")
         # output an array of our barcode_ids
         Array[String] barcode = read_lines("barcodes.txt")
-
         # output an array of our merged bam_files.
         Array[File] merged_bam = glob("merged/*.bam")
+        # and the raw paths to our globs.
         File glob_paths = "gcs_merged_bam_paths.txt"
     }
 

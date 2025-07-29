@@ -25,17 +25,18 @@ task CreateBarcodeMap {
 task ParseSamplesheetToDataTable {
     meta {
         description: "Parse the samplesheet and extract per-column arrays, also create a full TSV with an added raw_bams column for easy use as a Cromwell DataTable."
-        # I know this is busted but we've gotta see how this changes things.
     }
 
     parameter_meta {
         samplesheet: "CSV-formatted samplesheet with sample metadata. Formatted per ONT's guidelines except renamed column: alias => sample_id and output a DataTable for Cromwell input."
+        target_datatable: "string to specify the desired output datatable this run should be added to. must end in '_sample_id' (example: 'TP_sample_id') multiplex default: 'Bb_sample_id'"
         file_paths: "file containing GCS paths to the decompressed and merged bam files for addition to our DataTable"
     }
 
     input {
         File samplesheet
         File file_paths
+        String target_datatable = "Bb_sample_id"
 
         Int num_cpu = 4
         Int mem_gb = 16
@@ -46,11 +47,14 @@ task ParseSamplesheetToDataTable {
         set -euxo pipefail
 
         cat "~{file_paths}" > gcs_paths.txt
+        cat "~{target_datatable}" > target_datatable.txt
 
         python3 <<EOF
         import os
         import csv
         import json
+        with open("target_datatable.txt", "r") as f:
+            target_datatable = f.readlines()[0].strip()
         barcode_to_bam = {}
         with open("gcs_paths.txt", 'r') as f:
             for line in f:
@@ -66,8 +70,8 @@ task ParseSamplesheetToDataTable {
             reader = csv.DictReader(infile, delimiter=',')
             for row in reader:
                 # do this to check for bad samplesheet column naming.
-                if "Bb_sample_id" not in row.keys():
-                    row['Bb_sample_id'] = row.pop('sample_id')
+                if target_datatable not in row.keys():
+                    row[target_datatable] = row.pop('sample_id')
                 experiment_id = row.get("experiment_id", "")
                 barcode = row["barcode"]
                 merged_bam = barcode_to_bam.get(barcode, "")
@@ -80,7 +84,7 @@ task ParseSamplesheetToDataTable {
         DataTable_out_tsv = "DataTable.tsv"
         print(DataTable_out_tsv)
         with open(DataTable_out_tsv, 'w') as outf:
-            fieldnames = [ 'Bb_sample_id', 'barcode', 'experiment_id', 'flow_cell_id', 'position_id', 'flow_cell_product_code', 'kit', 'merged_bam']
+            fieldnames = [ f'{target_datatable}', 'barcode', 'experiment_id', 'flow_cell_id', 'position_id', 'flow_cell_product_code', 'kit', 'merged_bam']
             #fieldnames = rows[0].keys()
             print(f"Fieldnames: {fieldnames}")
             writer = csv.DictWriter(outf, delimiter='\t', fieldnames=fieldnames)

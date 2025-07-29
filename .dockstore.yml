@@ -1,8 +1,8 @@
 version: 1.2
 workflows:
-- name: ONT_Bb_DemuxAndQC
+- name: ONT_DemuxAndQC
   subclass: wdl
-  primaryDescriptorPath: /wdls/pipelines/ONT_Bb_DemuxAndQC.wdl
+  primaryDescriptorPath: /wdls/pipelines/ONT_DemuxAndQC.wdl
 - name: ONT_ReadPrepAndQC
   subclass: wdl
   primaryDescriptorPath: /wdls/pipelines/ONT_ReadPrepAndQC.wdl
