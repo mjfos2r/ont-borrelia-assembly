@@ -132,12 +132,13 @@ task Bam2Fastq {
     echo "Sorting finished! Beginning conversion of sorted.bam to fastq..."
     # preserve all tags that dorado puts in the BAM.
     # and add _R1 to keep things consistent with the thiagen workflow
-    samtools fastq -@ "$NPROCS" ~{st_params} -0 "~{fn_clean}_R1.fastq.gz" sorted.bam
+    # actually, don't....
+    samtools fastq -@ "$NPROCS" ~{st_params} -0 "~{fn_clean}.fastq.gz" sorted.bam
     echo "Conversion finished!"
     >>>
 
     output {
-        File fastq = "~{fn_clean}_R1.fastq.gz"
+        File converted_fastq = "~{fn_clean}.fastq.gz"
     }
     # no preempt.
     #########################
