@@ -138,7 +138,7 @@ task Bam2Fastq {
     >>>
 
     output {
-        File converted_fastq = "~{fn_clean}.fastq.gz"
+        File fastq = "~{fn_clean}.fastq.gz"
     }
     # no preempt.
     #########################
