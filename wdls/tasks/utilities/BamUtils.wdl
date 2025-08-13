@@ -121,19 +121,13 @@ task Bam2Fastq {
     # get the number of procs we have available
     NPROCS=$( cat /proc/cpuinfo | grep '^processor' | tail -n1 | awk '{print $NF+1}' )
     echo "Input BAM File: ~{input_bam}"
-    echo "Output Fastq File: ~{fn_clean}_R1.fastq.gz"
+    echo "Output Fastq File: ~{fn_clean}.fastq.gz"
     echo "Input BAM Size: ~{input_size}"
     echo "Disk Size: ~{disk_size}"
     echo "NPROCS: $NPROCS"
     echo "Samtools parameters: ~{st_params}"
-    echo "*****"
-    echo "Sorting input bam!"
-    samtools sort -@ "$NPROCS" -n -o sorted.bam ~{input_bam}
-    echo "Sorting finished! Beginning conversion of sorted.bam to fastq..."
-    # preserve all tags that dorado puts in the BAM.
-    # and add _R1 to keep things consistent with the thiagen workflow
-    # actually, don't....
-    samtools fastq -@ "$NPROCS" ~{st_params} -0 "~{fn_clean}.fastq.gz" sorted.bam
+    echo "Beginning conversion of sorted.bam to fastq..."
+    samtools fastq -@ "$NPROCS" ~{st_params} -n ~{input_bam} | gzip -1 "~{fn_clean}.fastq.gz"
     echo "Conversion finished!"
     >>>
 
