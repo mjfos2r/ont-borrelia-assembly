@@ -13,6 +13,7 @@ workflow BAMtoFastq {
     }
     input {
         String? sample_id
+        String? postfix
         File input_bam
         String? st_params
     }
@@ -20,7 +21,8 @@ workflow BAMtoFastq {
         input:
         input_bam = input_bam,
         sample_id = sample_id,
-        st_params = st_params
+        st_params = st_params,
+        postfix = postfix
     }
     output {
         File reads_fastq = Bam2Fastq.fastq

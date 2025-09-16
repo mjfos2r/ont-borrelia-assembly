@@ -103,6 +103,7 @@ task Bam2Fastq {
     input {
         File input_bam
         String? sample_id
+        String? postfix
         String st_params = "-T '*'"
         Int num_cpus = 8
         Int mem_gb = 32
@@ -112,6 +113,7 @@ task Bam2Fastq {
     String bn_input = basename(input_bam)
     String fn_raw = select_first([sample_id, bn_input])
     String fn_clean = sub(fn_raw, "\\.bam$", "")
+    String fn_final = fn_clean + select_first([postfix, ""])
     Float input_size = size(input_bam, "GB")
     Int disk_size = 365 + 3*ceil(input_size)
 
@@ -121,18 +123,18 @@ task Bam2Fastq {
     # get the number of procs we have available
     NPROCS=$( cat /proc/cpuinfo | grep '^processor' | tail -n1 | awk '{print $NF+1}' )
     echo "Input BAM File: ~{input_bam}"
-    echo "Output Fastq File: ~{fn_clean}.fastq.gz"
+    echo "Output Fastq File: ~{fn_final}.fastq.gz"
     echo "Input BAM Size: ~{input_size}"
     echo "Disk Size: ~{disk_size}"
     echo "NPROCS: $NPROCS"
     echo "Samtools parameters: ~{st_params}"
     echo "Beginning conversion of bam to fastq..."
-    samtools fastq -@ "$NPROCS" ~{st_params} -n ~{input_bam} | gzip -1 >"~{fn_clean}.fastq.gz"
+    samtools fastq -@ "$NPROCS" ~{st_params} -n ~{input_bam} | gzip -1 >"~{fn_final}.fastq.gz"
     echo "Conversion finished!"
     >>>
 
     output {
-        File fastq = "~{fn_clean}.fastq.gz"
+        File fastq = "~{fn_final}.fastq.gz"
     }
     # no preempt.
     #########################
