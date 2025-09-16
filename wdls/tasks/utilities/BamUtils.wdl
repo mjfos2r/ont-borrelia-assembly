@@ -116,7 +116,7 @@ task Bam2Fastq {
     Int disk_size = 365 + 3*ceil(input_size)
 
     command <<<
-    set -euo pipefail # if anything breaks crash out
+    set -euxo pipefail # if anything breaks crash out
 
     # get the number of procs we have available
     NPROCS=$( cat /proc/cpuinfo | grep '^processor' | tail -n1 | awk '{print $NF+1}' )
@@ -126,8 +126,8 @@ task Bam2Fastq {
     echo "Disk Size: ~{disk_size}"
     echo "NPROCS: $NPROCS"
     echo "Samtools parameters: ~{st_params}"
-    echo "Beginning conversion of sorted.bam to fastq..."
-    samtools fastq -@ "$NPROCS" ~{st_params} -n ~{input_bam} | gzip -1 "~{fn_clean}.fastq.gz"
+    echo "Beginning conversion of bam to fastq..."
+    samtools fastq -@ "$NPROCS" ~{st_params} -n ~{input_bam} | gzip -1 >"~{fn_clean}.fastq.gz"
     echo "Conversion finished!"
     >>>
 
