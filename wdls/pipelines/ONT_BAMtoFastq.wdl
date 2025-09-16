@@ -7,12 +7,12 @@ workflow BAMtoFastq {
         author: "Michael J. Foster"
     }
     parameter_meta {
-        sample_id: "sample_id for the bam file we're converting"
+        sample_id: "sample_id for the bam file we're converting. Not required, defaults to file basename."
         input_bam: "bam file to be converted"
         st_params: "parameters for 'samtools fastq' command. [default: -T '*']"
     }
     input {
-        String sample_id
+        String? sample_id
         File input_bam
         String? st_params
     }
